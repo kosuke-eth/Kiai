@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, Trophy, Target, TrendingUp, ChevronDown } from "lucide-react";
+import { Search, Trophy, Target, TrendingUp, ChevronDown } from "lucide-react";
 
 interface Athlete {
   id: string;

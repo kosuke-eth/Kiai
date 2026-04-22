@@ -4,9 +4,11 @@ import { createNetworkConfig, SuiClientProvider, WalletProvider } from "@mysten/
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { type ReactNode, useState } from "react"
 
+import { suiConfig, suiNetworkUrls } from "@/lib/sui/config"
+
 const { networkConfig } = createNetworkConfig({
-  mainnet: { url: "https://fullnode.mainnet.sui.io:443" },
-  testnet: { url: "https://fullnode.testnet.sui.io:443" },
+  mainnet: { url: suiNetworkUrls.mainnet, network: "mainnet" },
+  testnet: { url: suiNetworkUrls.testnet, network: "testnet" },
 })
 
 export function SuiWalletProvider({ children }: { children: ReactNode }) {
@@ -14,13 +16,8 @@ export function SuiWalletProvider({ children }: { children: ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SuiClientProvider networks={networkConfig} defaultNetwork="mainnet">
-        <WalletProvider
-          autoConnect
-          stashedWallet={{
-            name: "KIAI",
-          }}
-        >
+      <SuiClientProvider networks={networkConfig} defaultNetwork={suiConfig.network}>
+        <WalletProvider autoConnect>
           {children}
         </WalletProvider>
       </SuiClientProvider>

@@ -3,10 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, Coins, Search } from "lucide-react";
+import { Menu, X, Coins, Radio, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WalletButton } from "./wallet-button";
-import { useCurrentAccount } from "@mysten/dapp-kit";
+
+import { useKiaiAddress } from "@/hooks/use-kiai-address";
+import { useKiaiProfile } from "@/hooks/use-kiai-profile";
+import { suiConfig } from "@/lib/sui/config";
 
 const NAV_ITEMS = [
   { label: "EVENTS", href: "/events" },
@@ -14,13 +17,15 @@ const NAV_ITEMS = [
   { label: "ATHLETES", href: "/athletes" },
   { label: "LEADERBOARD", href: "/leaderboard" },
   { label: "MARKETPLACE", href: "/marketplace" },
+  { label: "ADMIN", href: "/admin" },
 ];
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const currentAccount = useCurrentAccount();
-  const points = 12450; // Demo points
+  const address = useKiaiAddress();
+  const { data } = useKiaiProfile(address);
+  const profile = data?.profile;
 
   return (
     <header className="sticky top-0 z-50 bg-sidebar text-sidebar-foreground border-b border-sidebar-border">
@@ -52,20 +57,26 @@ export function Header() {
 
           {/* Right Side */}
           <div className="flex items-center gap-3">
-            {/* Points Display - only show when connected */}
-            {currentAccount && (
-              <div className="hidden sm:flex items-center gap-2 bg-primary/20 px-3 py-1.5">
+            {profile && (
+              <div className="hidden xl:flex items-center gap-2 bg-primary/15 px-3 py-1.5">
                 <Coins className="w-4 h-4 text-primary" />
                 <span className="text-sm font-bold text-primary">
-                  {points.toLocaleString()} KP
+                  {profile.points.toLocaleString()} KP
                 </span>
               </div>
             )}
 
-            {/* Search */}
-            <button className="hidden md:flex items-center justify-center w-9 h-9 hover:bg-sidebar-accent transition-colors">
-              <Search className="w-5 h-5" />
-            </button>
+            <div className="hidden md:flex items-center gap-2 rounded border border-sidebar-border px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-sidebar-foreground/80">
+              <Radio className="w-3.5 h-3.5 text-primary" />
+              {suiConfig.network}
+            </div>
+
+            {profile?.badgeClaimed && (
+              <div className="hidden lg:flex items-center gap-2 rounded border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                {profile.badgeTier} badge
+              </div>
+            )}
 
             {/* Wallet Button */}
             <WalletButton />
@@ -105,11 +116,11 @@ export function Header() {
                   {item.label}
                 </Link>
               ))}
-              {currentAccount && (
+              {profile && (
                 <div className="flex items-center gap-2 px-4 py-3 mt-2 bg-primary/10">
                   <Coins className="w-4 h-4 text-primary" />
                   <span className="text-sm font-bold text-primary">
-                    {points.toLocaleString()} KP
+                    {profile.points.toLocaleString()} KP
                   </span>
                 </div>
               )}

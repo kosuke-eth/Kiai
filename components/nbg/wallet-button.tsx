@@ -5,34 +5,43 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Wallet, ChevronDown, LogOut, Copy, Check, X } from "lucide-react"
 
+import { useZkLogin } from "@/hooks/use-zklogin"
+
 export function WalletButton() {
   const wallets = useWallets()
   const { mutate: connect } = useConnectWallet()
   const { mutate: disconnect } = useDisconnectWallet()
   const currentAccount = useCurrentAccount()
+  const { session, isReady: zkLoginReady, initiateGoogleLogin, clearSession } = useZkLogin()
   const [showModal, setShowModal] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
   const [copied, setCopied] = useState(false)
+  const connectedAddress = currentAccount?.address ?? session?.address
+  const isZkLoginSession = !currentAccount?.address && Boolean(session?.address)
 
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`
   }
 
   const copyAddress = () => {
-    if (currentAccount?.address) {
-      navigator.clipboard.writeText(currentAccount.address)
+    if (connectedAddress) {
+      navigator.clipboard.writeText(connectedAddress)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
   }
 
   const handleDisconnect = () => {
-    disconnect()
+    if (currentAccount) {
+      disconnect()
+    } else {
+      clearSession()
+    }
     setShowDropdown(false)
   }
 
   // Connected state
-  if (currentAccount) {
+  if (connectedAddress) {
     return (
       <div className="relative">
         <button
@@ -40,7 +49,7 @@ export function WalletButton() {
           className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 font-semibold text-sm hover:bg-primary/90 transition-colors"
         >
           <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span>{formatAddress(currentAccount.address)}</span>
+          <span>{formatAddress(connectedAddress)}</span>
           <ChevronDown className={`w-4 h-4 transition-transform ${showDropdown ? "rotate-180" : ""}`} />
         </button>
 
@@ -58,9 +67,11 @@ export function WalletButton() {
                 className="absolute right-0 top-full mt-2 w-64 bg-card border border-border shadow-lg z-50"
               >
                 <div className="p-4 border-b border-border">
-                  <p className="text-xs text-muted-foreground mb-1">Connected Wallet</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    {isZkLoginSession ? "Connected with Google zkLogin" : "Connected Wallet"}
+                  </p>
                   <div className="flex items-center justify-between">
-                    <p className="font-mono text-sm">{formatAddress(currentAccount.address)}</p>
+                    <p className="font-mono text-sm">{formatAddress(connectedAddress)}</p>
                     <button
                       onClick={copyAddress}
                       className="p-1.5 hover:bg-muted rounded transition-colors"
@@ -75,11 +86,11 @@ export function WalletButton() {
                 </div>
                 <div className="p-2">
                   <button
-                    onClick={handleDisconnect}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Disconnect
+                      onClick={handleDisconnect}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      {isZkLoginSession ? "Sign out" : "Disconnect"}
                   </button>
                 </div>
               </motion.div>
@@ -133,6 +144,24 @@ export function WalletButton() {
                 </p>
 
                 <div className="space-y-2">
+                  {zkLoginReady ? (
+                    <button
+                      onClick={async () => {
+                        setShowModal(false)
+                        await initiateGoogleLogin()
+                      }}
+                      className="w-full flex items-center gap-3 p-3 border border-primary/40 bg-primary/10 hover:border-primary hover:bg-primary/15 transition-colors"
+                    >
+                      <div className="w-8 h-8 rounded bg-white text-black flex items-center justify-center font-black">
+                        G
+                      </div>
+                      <div className="text-left">
+                        <p className="font-semibold">Continue with Google</p>
+                        <p className="text-xs text-muted-foreground">zkLogin on Sui</p>
+                      </div>
+                    </button>
+                  ) : null}
+
                   {wallets.length > 0 ? (
                     wallets.map((wallet) => (
                       <button
