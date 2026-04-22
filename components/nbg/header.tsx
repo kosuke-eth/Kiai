@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, Coins, Radio, ShieldCheck } from "lucide-react";
+import { Menu, X, Coins, Radio, ShieldCheck, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WalletButton } from "./wallet-button";
 
@@ -77,6 +77,11 @@ export function Header() {
                 {profile.badgeTier} badge
               </div>
             )}
+
+            {/* Search */}
+            <button className="hidden md:flex items-center justify-center w-9 h-9 hover:bg-sidebar-accent transition-colors">
+              <Search className="w-5 h-5" />
+            </button>
 
             {/* Wallet Button */}
             <WalletButton />
