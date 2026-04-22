@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { motion } from "framer-motion"
-import { ChevronDown, ChevronUp, Coins, Crown, Flame, Medal, Minus, Trophy } from "lucide-react"
+import { Award, ChevronDown, ChevronUp, Coins, Crown, Flame, Medal, Minus, Trophy, TrendingUp } from "lucide-react"
 
 import { useKiaiAddress } from "@/hooks/use-kiai-address"
 import { useKiaiProfile } from "@/hooks/use-kiai-profile"
@@ -103,6 +103,30 @@ export function LeaderboardPage() {
               ))}
             </div>
           </div>
+
+          {/* Prize Pool */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+            <div className="bg-card border border-border rounded-xl p-4 text-center">
+              <div className="text-sm text-muted-foreground mb-1">1st Place</div>
+              <div className="text-2xl font-black text-primary">50,000 KP</div>
+              <div className="text-xs text-muted-foreground">+ Black Belt NFT</div>
+            </div>
+            <div className="bg-card border border-border rounded-xl p-4 text-center">
+              <div className="text-sm text-muted-foreground mb-1">2nd Place</div>
+              <div className="text-2xl font-black">25,000 KP</div>
+              <div className="text-xs text-muted-foreground">+ Brown Belt NFT</div>
+            </div>
+            <div className="bg-card border border-border rounded-xl p-4 text-center">
+              <div className="text-sm text-muted-foreground mb-1">3rd Place</div>
+              <div className="text-2xl font-black">10,000 KP</div>
+              <div className="text-xs text-muted-foreground">+ Purple Belt NFT</div>
+            </div>
+            <div className="bg-card border border-border rounded-xl p-4 text-center">
+              <div className="text-sm text-muted-foreground mb-1">Top 10</div>
+              <div className="text-2xl font-black">5,000 KP</div>
+              <div className="text-xs text-muted-foreground">+ Blue Belt NFT</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -191,12 +215,28 @@ export function LeaderboardPage() {
                     </div>
                   </div>
 
-                  <div className="md:col-span-2 flex items-center md:justify-end font-semibold">
-                    {winRate}% <span className="ml-2 text-xs text-muted-foreground">({entry.correctCalls}/{entry.totalCalls})</span>
+                  <div className="md:col-span-2 flex items-center md:justify-end">
+                    <div className="flex items-center gap-1">
+                      <TrendingUp className="w-4 h-4 text-green-500" />
+                      <span className="font-semibold">{winRate}%</span>
+                      <span className="text-xs text-muted-foreground">
+                        ({entry.correctCalls}/{entry.totalCalls})
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="md:col-span-1 flex items-center md:justify-center font-semibold">{entry.streak}</div>
-                  <div className="md:col-span-1 flex items-center md:justify-center font-semibold">{entry.nfts}</div>
+                  <div className="md:col-span-1 flex items-center md:justify-center">
+                    <div className="flex items-center gap-1">
+                      <Flame className={`w-4 h-4 ${entry.streak >= 5 ? "text-orange-500" : "text-muted-foreground"}`} />
+                      <span className="font-semibold">{entry.streak}</span>
+                    </div>
+                  </div>
+                  <div className="md:col-span-1 flex items-center md:justify-center">
+                    <div className="flex items-center gap-1">
+                      <Award className="w-4 h-4 text-primary" />
+                      <span className="font-semibold">{entry.nfts}</span>
+                    </div>
+                  </div>
 
                   <div className="md:col-span-2 flex items-center md:justify-end">
                     <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${TIER_STYLES[entry.tier]}`}>
@@ -206,6 +246,30 @@ export function LeaderboardPage() {
                 </motion.div>
               )
             })}
+          </div>
+        </div>
+
+        {/* Tier System */}
+        <div className="mt-8 p-6 bg-muted/50 border border-dashed border-border rounded-xl">
+          <h3 className="font-bold mb-4 flex items-center gap-2">
+            <Award className="w-5 h-5 text-primary" />
+            Badge Tier System
+          </h3>
+          <div className="grid md:grid-cols-5 gap-4">
+            {(["white", "blue", "purple", "brown", "black"] as const).map((tier) => (
+              <div key={tier} className="text-center p-3 bg-card border border-border rounded-lg">
+                <span className={`inline-block px-3 py-1 text-xs font-bold rounded-full mb-2 ${TIER_STYLES[tier]}`}>
+                  {tier.charAt(0).toUpperCase() + tier.slice(1)}
+                </span>
+                <div className="text-sm text-muted-foreground">
+                  {tier === "white" && "0 – 5K KP"}
+                  {tier === "blue" && "5K – 25K KP"}
+                  {tier === "purple" && "25K – 75K KP"}
+                  {tier === "brown" && "75K – 150K KP"}
+                  {tier === "black" && "150K+ KP"}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </main>
