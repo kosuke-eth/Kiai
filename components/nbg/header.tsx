@@ -79,7 +79,7 @@ export function Header() {
             )}
 
             {/* Search */}
-            <button className="hidden md:flex items-center justify-center w-9 h-9 hover:bg-sidebar-accent transition-colors">
+            <button type="button" className="hidden md:flex items-center justify-center w-9 h-9 hover:bg-sidebar-accent transition-colors">
               <Search className="w-5 h-5" />
             </button>
 
