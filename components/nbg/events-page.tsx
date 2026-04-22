@@ -59,7 +59,7 @@ export function EventsPage() {
                 href="/predictions"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-black text-white font-bold text-lg rounded hover:bg-black/90 transition-colors"
               >
-                Join Live Sync
+                Join Live Predictions
                 <ChevronRight className="w-5 h-5" />
               </Link>
             </div>
@@ -173,6 +173,12 @@ export function EventsPage() {
             </motion.div>
           ))}
         </div>
+
+        {!eventsQuery.isLoading && filteredEvents.length === 0 && (
+          <div className="text-center py-16 text-muted-foreground">
+            No events found for this filter.
+          </div>
+        )}
       </main>
     </div>
   )
