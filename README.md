@@ -1,12 +1,12 @@
 # 🥋 KIAI: The Spirit Engine
 
-### AI-Driven Real-Time Sentiment Market for ONE Championship on Sui
+### Real-Time Sentiment Market for ONE Championship on Sui
 
 -----
 
 ## 📖 Overview
 
-**KIAI** is the world's first "100% legal" and "zero-friction" combat sports real-time sentiment market, merging the power of the Sui blockchain with AI agents.
+**KIAI** is the world's first "100% legal" and "zero-friction" combat sports real-time sentiment market, merging the power of the Sui blockchain with real-time live broadcasting..
 
 Due to strict gambling laws in Japan, traditional prediction markets are difficult to implement for domestic events like ONE Championship. KIAI elegantly leaps over this legal wall by utilizing Sui's **Sponsored Transactions** and **zkLogin**. By building a model where users face "zero financial burden" (including gas fees), KIAI synchronizes fan passion on-chain while maintaining full legal compliance.
 
@@ -42,8 +42,7 @@ Upon successful predictions, users are rewarded with "Combat IQ" points. Based o
 ## 🏗 Architecture
 
 1.  **Match Data Ingest:** Captures metadata from the live fight.
-2.  **AI Scenario Generation:** AI agents mint `Scenario` objects on Sui.
-3.  **User Interaction:** Users sign via `zkLogin` and allocate `KIAI Energy` (voting tokens).
+2.  **Real-Time Scenario Minting: Currently, admin operators monitor the live match and instantly mint Scenario objects on Sui, with full AI automation planned for the next phase.3.  **User Interaction:** Users sign via `zkLogin` and allocate `KIAI Energy` (voting tokens).
 4.  **Parallel Settlement:** Sui’s parallel execution processes tens of thousands of simultaneous inputs with ultra-low latency.
 5.  **Reward Distribution:** Updates `Dynamic NFT` status and points after scenario settlement.
 
@@ -56,7 +55,6 @@ Upon successful predictions, users are rewarded with "Combat IQ" points. Based o
   * **Frontend:** React, TypeScript, Tailwind CSS, Vite
   * **Identity:** Sui zkLogin (Google Auth)
   * **Infrastructure:** Sponsored Transactions (Gas Station integration)
-  * **AI Integration:** OpenAI API (Scenario Generation Logic)
 
 -----
 
@@ -109,5 +107,11 @@ KIAI is designed with a "Compliance First" approach for the Japanese market.
 We use technology to gracefully overcome the barriers that bind the Japanese entertainment and Web3 industries. We are creating a future where the "KIAI" (spirit) of fans is connected on-chain, both at the Ariake Arena and in front of screens worldwide.
 
 -----
+
+## 🗺 Roadmap (Post-Hackathon)
+
+While our current MVP focuses on perfectly executing the core Sui infrastructure (zkLogin, Sponsored Tx) and establishing the legal framework, our next steps include:
+* **AI-Driven Micro-Books:** Integrating LLM agents (e.g., OpenAI) to automatically analyze live match data and generate prediction scenarios with zero human intervention.
+* **Official ONE Super App Integration:** Seamlessly embedding the KIAI engine into the existing ONE Championship mobile ecosystem.
 
 © 2026 KIAI Project. All rights reserved.
