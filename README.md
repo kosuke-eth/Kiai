@@ -25,21 +25,15 @@ Due to strict gambling laws in Japan, traditional prediction markets are difficu
 
 ## ✨ Key Features
 
-### 1\. 🤖 AI-Driven Micro-Books
-
-AI agents monitor live match developments and automatically generate "Micro-Books" (scenarios) in real-time, ranging from a few seconds to minutes.
-
-  * Example: *"Will Takeru land a knockdown before the end of Round 2?"*
-
-### 2\. ⚡️ Zero-Friction Onboarding (zkLogin)
+### 1\. ⚡️ Zero-Friction Onboarding (zkLogin)
 
 Integrated with Sui's **zkLogin**, KIAI requires no seed phrases or existing wallets. General fight fans can enter the "Dojo" instantly using only their everyday Google accounts.
 
-### 3\. ⛽️ Fully Sponsored Transactions
+### 2\. ⛽️ Fully Sponsored Transactions
 
 To comply with Japanese regulations, the protocol covers 100% of the gas fees for all transactions. By eliminating "financial output" from the user, the system completely clears the legal constraints of gambling and sweepstakes laws.
 
-### 4\. 🥋 Earn Points & Claim Gasless NFTs
+### 3\. 🥋 Earn Points & Claim Gasless NFTs
 
 Upon successful predictions, users are rewarded with "Combat IQ" points. Based on accumulated points, users can claim and upgrade their "KIAI Badge" (Dynamic SBT) completely **gas-free** via Sponsored Transactions. The badge visually evolves on-chain (e.g., from White Belt to Black Belt), serving as verifiable proof of their fighting insight to unlock future exclusive ONE Championship perks.
 
