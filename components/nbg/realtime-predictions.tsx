@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { motion } from "framer-motion"
-import { Award, Check, Clock3, Coins, Flame, ShieldCheck, Sparkles, Users } from "lucide-react"
+import { Award, Check, Clock3, Coins, Flame, ShieldCheck, Sparkles, Users, Zap } from "lucide-react"
 
 import { useKiaiAddress } from "@/hooks/use-kiai-address"
 import { useKiaiChainActions } from "@/hooks/use-kiai-chain-actions"
@@ -43,8 +43,66 @@ export function RealtimePredictions() {
     return scenarios.filter((scenario) => scenario.state === "open" || scenario.state === "locked")
   }, [scenariosQuery.data?.scenarios])
 
+  const firstLiveScenario = liveScenarios[0]
+  const bannerFighterA = firstLiveScenario?.fighterA ?? { name: "Fighter A", country: "—" }
+  const bannerFighterB = firstLiveScenario?.fighterB ?? { name: "Fighter B", country: "—" }
+  const bannerEventLabel = firstLiveScenario ? `ROUND ${firstLiveScenario.round}` : "LIVE"
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Event Banner */}
+      <div className="bg-[#d4a300] border-b border-[#b8860b]">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-600 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-black/70">{bannerEventLabel}</p>
+                <h2 className="text-xl md:text-2xl font-black text-black">KIAI LIVE</h2>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-center px-4 border-r border-black/30">
+                <div className="text-2xl font-black text-black">{bannerFighterA.name}</div>
+                <div className="text-xs text-black/70">{bannerFighterA.country}</div>
+              </div>
+              <div className="text-2xl font-black text-black/60">VS</div>
+              <div className="text-center px-4 border-l border-black/30">
+                <div className="text-2xl font-black text-black">{bannerFighterB.name}</div>
+                <div className="text-xs text-black/70">{bannerFighterB.country}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* User Stats Bar */}
+      <div className="bg-[#1a1a1a] border-b border-[#333]">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Coins className="w-5 h-5 text-[#d4a300]" />
+                <span className="font-bold text-white">{(profile?.points ?? 0).toLocaleString()}</span>
+                <span className="text-sm text-white/60">KP</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-[#d4a300]" />
+                <span className="font-bold text-white">{profile?.nftCount ?? 0}</span>
+                <span className="text-sm text-white/60">NFTs</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-white/60">
+              <Zap className="w-4 h-4 text-[#d4a300]" />
+              <span>New windows open during live events</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="border-b border-border bg-gradient-to-br from-primary/10 via-background to-destructive/10">
         <div className="max-w-7xl mx-auto px-4 py-10">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -66,6 +124,24 @@ export function RealtimePredictions() {
       </div>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Fighter Battle Image */}
+        <div className="relative mb-8 rounded-xl overflow-hidden">
+          <img
+            src="/images/fighters-battle.jpg"
+            alt="Fight in progress"
+            className="w-full h-48 md:h-64 object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+          <div className="absolute bottom-4 left-4 right-4">
+            <div className="flex items-center gap-3">
+              <h3 className="text-xl md:text-2xl font-black text-white drop-shadow-lg">ACTION PREDICTIONS</h3>
+              <span className="px-2 py-1 bg-white/20 backdrop-blur text-white text-sm font-semibold rounded-full">
+                {liveScenarios.length} active window{liveScenarios.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
           <section className="space-y-4">
             <div className="rounded-2xl border border-border bg-card p-5">
@@ -237,6 +313,28 @@ export function RealtimePredictions() {
               )
             })}
           </section>
+        </div>
+
+        {/* Reward System */}
+        <div className="mt-8 p-6 bg-muted/50 border border-dashed border-border rounded-xl">
+          <h4 className="font-bold mb-3 flex items-center gap-2">
+            <Award className="w-5 h-5 text-primary" />
+            Reward System
+          </h4>
+          <div className="grid md:grid-cols-3 gap-4 text-sm text-muted-foreground">
+            <div>
+              <p className="font-semibold text-foreground mb-1">Earn Points (KP)</p>
+              <p>Correct allocations earn KP based on your energy commitment and the outcome.</p>
+            </div>
+            <div>
+              <p className="font-semibold text-foreground mb-1">Unlock NFTs</p>
+              <p>Accumulate KP to claim Combat IQ NFTs. Use them to unlock exclusive marketplace items.</p>
+            </div>
+            <div>
+              <p className="font-semibold text-foreground mb-1">Climb the Leaderboard</p>
+              <p>Top predictors earn bonus KP and NFT rewards at the end of each event.</p>
+            </div>
+          </div>
         </div>
       </main>
     </div>
