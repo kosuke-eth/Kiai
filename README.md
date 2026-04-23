@@ -42,7 +42,7 @@ Upon successful predictions, users are rewarded with "Combat IQ" points. Based o
 ## 🏗 Architecture
 
 1.  **Match Data Ingest:** Captures metadata from the live fight.
-2.  **Real-Time Scenario Minting: Currently, admin operators monitor the live match and instantly mint Scenario objects on Sui, with full AI automation planned for the next phase.3.  **User Interaction:** Users sign via `zkLogin` and allocate `KIAI Energy` (voting tokens).
+2.  Real-Time Scenario Minting: Currently, admin operators monitor the live match and instantly mint Scenario objects on Sui, with full AI automation planned for the next phase.3.  **User Interaction:** Users sign via `zkLogin` and allocate `KIAI Energy` (voting tokens).
 4.  **Parallel Settlement:** Sui’s parallel execution processes tens of thousands of simultaneous inputs with ultra-low latency.
 5.  **Reward Distribution:** Updates `Dynamic NFT` status and points after scenario settlement.
 
