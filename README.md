@@ -17,6 +17,11 @@ Due to strict gambling laws in Japan, traditional prediction markets are difficu
   * **Combat IQ:** Prove your "fighting insight" and earn honor through Soulbound Tokens (SBT).
 
 -----
+### 💡 Practical Impact
+
+* For ONE Championship: Unlocks a legally compliant, highly engaging interactive experience in Japan. By keeping fans glued to 60-second micro-scenarios, it drastically increases screen retention.
+
+* For Athletes: Creates a verifiable on-chain bridge to true fans. Athletes can identify who backed them during critical moments and reward high-tier "Black Belt" SBT holders with exclusive perks (meet & greets, merchandise).
 
 ## ✨ Key Features
 
