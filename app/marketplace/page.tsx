@@ -1,4 +1,4 @@
-import { MarketplacePage } from "@/components/nbg/marketplace-page"
+import { MarketplaceClientPage } from "./page-client"
 
 export const metadata = {
   title: "Marketplace - KIAI",
@@ -6,5 +6,5 @@ export const metadata = {
 }
 
 export default function Page() {
-  return <MarketplacePage />
+  return <MarketplaceClientPage />
 }

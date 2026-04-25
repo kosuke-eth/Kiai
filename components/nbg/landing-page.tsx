@@ -62,13 +62,13 @@ const LIVE_EVENTS = [
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="page-shell">
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
+      <section className="page-hero relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-destructive/5" />
         
-        <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-24">
+        <div className="page-container relative py-16 md:py-24">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div>
@@ -77,7 +77,8 @@ export function LandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                <span className="inline-flex items-center gap-2 px-3 py-1 bg-destructive/10 text-destructive text-sm font-semibold rounded-full mb-6">
+                <div className="section-kicker mb-4">Live fan signal on Sui</div>
+                <span className="mb-6 inline-flex items-center gap-2 rounded-full bg-destructive/10 px-3 py-1 text-sm font-semibold text-destructive">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive"></span>
@@ -99,11 +100,11 @@ export function LandingPage() {
                 </p>
 
                 <div className="flex flex-wrap gap-4">
-                  <Link href="/predictions" className="btn-primary inline-flex items-center gap-2 text-lg px-8 py-4">
+                  <Link href="/predictions" className="btn-primary inline-flex items-center gap-2 rounded-xl px-8 py-4 text-lg">
                     Start Predicting
                     <ChevronRight className="w-5 h-5" />
                   </Link>
-                  <Link href="/events" className="btn-secondary inline-flex items-center gap-2 text-lg px-8 py-4">
+                  <Link href="/events" className="btn-secondary inline-flex items-center gap-2 rounded-xl px-8 py-4 text-lg">
                     View Events
                   </Link>
                 </div>
@@ -115,7 +116,7 @@ export function LandingPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="gold-bg rounded-2xl p-8 md:p-10"
+              className="rounded-[2rem] border border-primary/20 bg-gradient-to-br from-primary via-primary/90 to-primary/75 p-8 shadow-sm md:p-10"
             >
               <div className="mb-6">
                 <p className="text-sm text-black/70">APR 29 (WED) 2:00PM JST</p>
@@ -126,13 +127,13 @@ export function LandingPage() {
               <div className="flex flex-wrap gap-3">
                 <Link 
                   href="/predictions" 
-                  className="px-6 py-3 bg-black text-white font-semibold rounded hover:bg-black/90 transition-colors"
+                  className="rounded-xl bg-black px-6 py-3 font-semibold text-white transition-colors hover:bg-black/90"
                 >
                   PREDICT NOW
                 </Link>
                 <Link 
                   href="/events" 
-                  className="px-6 py-3 bg-black text-white font-semibold rounded hover:bg-black/90 transition-colors"
+                  className="rounded-xl bg-black px-6 py-3 font-semibold text-white transition-colors hover:bg-black/90"
                 >
                   VIEW EVENT
                 </Link>
@@ -146,8 +147,9 @@ export function LandingPage() {
 
       {/* How It Works */}
       <section className="py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="page-container">
           <div className="text-center mb-12">
+            <div className="section-kicker mb-3">Product flow</div>
             <h2 className="text-3xl md:text-4xl font-black mb-4">HOW IT WORKS</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Predict specific fight actions in real-time and earn rewards for your combat intelligence.
@@ -161,9 +163,9 @@ export function LandingPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="p-6 bg-card border border-border rounded-xl"
+                className="page-panel p-6"
               >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
                   <feature.icon className="w-6 h-6 text-primary" />
                 </div>
                 <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
@@ -175,8 +177,8 @@ export function LandingPage() {
       </section>
 
       {/* Upcoming Events */}
-      <section className="py-16 md:py-24 bg-muted/30">
-        <div className="max-w-7xl mx-auto px-4">
+      <section className="border-y border-border bg-muted/30 py-16 md:py-24">
+        <div className="page-container">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl md:text-3xl font-black">UPCOMING EVENTS</h2>
             <Link href="/events" className="text-primary font-semibold text-sm flex items-center gap-1">
@@ -191,20 +193,21 @@ export function LandingPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-card border border-border rounded-xl overflow-hidden group hover:border-primary/50 transition-colors"
+                className="page-panel group overflow-hidden transition-colors hover:border-primary/50"
               >
-                <div className="h-32 bg-gradient-to-br from-primary/20 to-destructive/20 flex items-center justify-center">
-                  <span className="text-2xl font-black text-primary/40">KIAI</span>
+                <div className="flex h-32 items-end justify-between bg-gradient-to-br from-primary/20 to-destructive/10 px-5 py-4">
+                  <span className="section-kicker text-primary/70">Event card</span>
+                  <span className="text-2xl font-black text-primary/35">KIAI</span>
                 </div>
                 <div className="p-5">
                   <div className="flex items-center gap-2 mb-2">
                     {event.status === "live" ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-destructive/10 text-destructive text-xs font-semibold rounded">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">
                         <span className="w-1.5 h-1.5 bg-destructive rounded-full animate-pulse" />
                         LIVE
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded">
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
                         UPCOMING
                       </span>
                     )}
@@ -232,7 +235,7 @@ export function LandingPage() {
 
       {/* CTA Section */}
       <section className="py-16 md:py-24">
-        <div className="max-w-4xl mx-auto px-4 text-center">
+        <div className="mx-auto max-w-4xl px-4 text-center">
           <h2 className="text-3xl md:text-5xl font-black mb-6 text-balance">
             READY TO TEST YOUR
             <span className="text-primary"> COMBAT IQ</span>?
@@ -241,7 +244,7 @@ export function LandingPage() {
             Join thousands of fight fans making real-time predictions on ONE Championship events. 
             Your instincts could earn you points and exclusive NFTs.
           </p>
-          <Link href="/predictions" className="btn-primary inline-flex items-center gap-2 text-lg px-10 py-4">
+          <Link href="/predictions" className="btn-primary inline-flex items-center gap-2 rounded-xl px-10 py-4 text-lg">
             Enter The Arena
             <ChevronRight className="w-5 h-5" />
           </Link>

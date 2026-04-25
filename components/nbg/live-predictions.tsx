@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Users, Zap, Check, X, ChevronRight, Trophy, Flame } from "lucide-react";
+import { Clock, Users, Zap, Check, ChevronRight, Trophy, Flame } from "lucide-react";
 import { toast } from "sonner";
 
 interface Prediction {

@@ -1,13 +1,22 @@
-"use client";
+"use client"
 
-import { Header } from "@/components/nbg/header";
-import { RealtimePredictions } from "@/components/nbg/realtime-predictions";
-import { Toaster } from "sonner";
+import dynamic from "next/dynamic"
+
+const Header = dynamic(() => import("@/components/nbg/header").then((mod) => mod.Header), {
+  ssr: false,
+})
+const RealtimePredictions = dynamic(
+  () => import("@/components/nbg/realtime-predictions").then((mod) => mod.RealtimePredictions),
+  { ssr: false },
+)
+const Toaster = dynamic(() => import("sonner").then((mod) => mod.Toaster), {
+  ssr: false,
+})
 
 export default function PredictionsPage() {
   return (
     <main className="min-h-screen bg-background">
-      <Toaster 
+      <Toaster
         position="top-center"
         toastOptions={{
           style: {
@@ -17,8 +26,8 @@ export default function PredictionsPage() {
           },
         }}
       />
-      <Header points={1250} isConnected={true} />
+      <Header />
       <RealtimePredictions />
     </main>
-  );
+  )
 }
