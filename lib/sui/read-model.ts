@@ -139,6 +139,20 @@ function scenarioStateFromCode(code: number): ScenarioState {
   }
 }
 
+function deriveScenarioState(code: number, openAtMs: number, lockAtMs: number): ScenarioState {
+  const storedState = scenarioStateFromCode(code)
+  if (storedState === "settled" || storedState === "archived") {
+    return storedState
+  }
+
+  const now = Date.now()
+  if (now < openAtMs) {
+    return "draft"
+  }
+
+  return now < lockAtMs ? "open" : "locked"
+}
+
 function badgeTierFromCode(code: number): UserProfile["badgeTier"] {
   switch (code) {
     case 1:
@@ -205,6 +219,9 @@ function parseProfile(entry: JsonLike): UserProfile {
 function parseScenario(entry: JsonLike): KiaiScenario {
   const fields = asRecord(entry)
   const allocations = asArray(fields.allocations).map(parseAllocation)
+  const openAtMs = asNumber(fields.open_at_ms)
+  const lockAtMs = asNumber(fields.lock_at_ms)
+  const settleByMs = asNumber(fields.settle_by_ms)
   return {
     id: String(asNumber(fields.scenario_id)),
     chainScenarioId: String(asNumber(fields.scenario_id)),
@@ -220,10 +237,10 @@ function parseScenario(entry: JsonLike): KiaiScenario {
       country: asString(fields.fighter_b_country),
     },
     round: asNumber(fields.round),
-    openAt: msToIso(asNumber(fields.open_at_ms)),
-    lockAt: msToIso(asNumber(fields.lock_at_ms)),
-    settleBy: msToIso(asNumber(fields.settle_by_ms)),
-    state: scenarioStateFromCode(asNumber(fields.state)),
+    openAt: msToIso(openAtMs),
+    lockAt: msToIso(lockAtMs),
+    settleBy: msToIso(settleByMs),
+    state: deriveScenarioState(asNumber(fields.state), openAtMs, lockAtMs),
     resolutionSource: "operator",
     winningSide: sideFromBool(parseOptionBool(fields.winning_side)),
     totalEnergy: asNumber(fields.total_energy),

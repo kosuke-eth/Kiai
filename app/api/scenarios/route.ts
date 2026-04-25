@@ -30,11 +30,16 @@ export async function GET(request: NextRequest) {
   const eventId = request.nextUrl.searchParams.get("eventId") ?? undefined
   const state = (request.nextUrl.searchParams.get("state") ?? undefined) as ScenarioState | "active" | undefined
   const chainScenarios = await listChainScenarios()
+
+  if (chainScenarios.length > 0) {
+    getKiaiStore().syncChainScenarios(chainScenarios)
+  }
+
   const scenarios =
     chainScenarios.length > 0
       ? chainScenarios.filter((scenario) => {
           if (eventId && scenario.eventId !== eventId) return false
-          if (state === "active") return scenario.state === "open" || scenario.state === "locked"
+          if (state === "active") return scenario.state === "open"
           if (state) return scenario.state === state
           return true
         })

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto"
 
 import { NextResponse } from "next/server"
-import { decodeJwt, jwtToAddress } from "@mysten/sui/zklogin"
+import { decodeJwt, genAddressSeed, jwtToAddress } from "@mysten/sui/zklogin"
 import { z } from "zod"
 
 import { suiConfig } from "@/lib/sui/config"
@@ -51,10 +51,35 @@ function getDefaultProverUrl() {
     : "https://prover-dev.mystenlabs.com/v1"
 }
 
+function getConfiguredUrl(value: string | undefined, fallback: string) {
+  const trimmed = value?.trim()
+  return trimmed ? trimmed : fallback
+}
+
+function formatProverError(message: string, audience: string | string[] | undefined, proverUrl: string) {
+  const normalizedAudience = Array.isArray(audience) ? audience.join(", ") : audience ?? "unknown"
+
+  if (/audience.+not supported/i.test(message)) {
+    return [
+      `Hosted zkLogin prover rejected the OAuth client ID (${normalizedAudience}).`,
+      "Automatic Google zkLogin needs one of the following:",
+      "- a self-hosted prover exposed via SUI_ZKLOGIN_PROVER_URL",
+      "- or an Enoki / Mysten-managed setup with a supported client ID",
+      `Current prover: ${proverUrl}`,
+    ].join("\n")
+  }
+
+  return message || "zkLogin prover request failed"
+}
+
 export async function POST(request: Request) {
   try {
     const { jwt, extendedEphemeralPublicKey, maxEpoch, randomness } = zkLoginSchema.parse(await request.json())
-    const saltServiceUrl = process.env.ZKLOGIN_SALT_SERVICE ?? "https://salt.api.mystenlabs.com/get_salt"
+    const decodedJwt = decodeJwt(jwt)
+    const saltServiceUrl = getConfiguredUrl(
+      process.env.ZKLOGIN_SALT_SERVICE,
+      "https://salt.api.mystenlabs.com/get_salt",
+    )
     let salt = ""
 
     try {
@@ -73,7 +98,7 @@ export async function POST(request: Request) {
       salt = createStableSalt(jwt)
     }
 
-    const proverUrl = process.env.SUI_ZKLOGIN_PROVER_URL ?? getDefaultProverUrl()
+    const proverUrl = getConfiguredUrl(process.env.SUI_ZKLOGIN_PROVER_URL, getDefaultProverUrl())
 
     const proofResponse = await fetch(proverUrl, {
       method: "POST",
@@ -83,7 +108,7 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         jwt,
         extendedEphemeralPublicKey,
-        maxEpoch,
+        maxEpoch: maxEpoch.toString(),
         jwtRandomness: randomness,
         salt,
         keyClaimName: "sub",
@@ -92,10 +117,11 @@ export async function POST(request: Request) {
 
     if (!proofResponse.ok) {
       const message = await proofResponse.text()
-      return new NextResponse(message || "zkLogin prover request failed", { status: 502 })
+      return new NextResponse(formatProverError(message, decodedJwt.aud, proverUrl), { status: 502 })
     }
 
-    const proof = normalizeZkLoginSignatureInputs(await proofResponse.json())
+    const addressSeed = genAddressSeed(BigInt(salt), "sub", decodedJwt.sub, decodedJwt.aud).toString()
+    const proof = normalizeZkLoginSignatureInputs(await proofResponse.json(), addressSeed)
     const address = jwtToAddress(jwt, salt, false)
 
     return NextResponse.json({

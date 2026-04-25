@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
-import { DEFAULT_USER_ADDRESS } from "@/lib/kiai/constants"
 import { getKiaiStore } from "@/lib/kiai/store"
 
 const redeemSchema = z.object({
@@ -12,10 +11,7 @@ const redeemSchema = z.object({
 export async function POST(request: Request) {
   try {
     const input = redeemSchema.parse(await request.json())
-    const result = getKiaiStore().redeemMarketplaceItem({
-      ...input,
-      address: DEFAULT_USER_ADDRESS,
-    })
+    const result = getKiaiStore().redeemMarketplaceItem(input)
     return NextResponse.json({
       profile: result.profile,
       purchaseHistory: result.history,

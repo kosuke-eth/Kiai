@@ -1,8 +1,17 @@
-"use client";
+"use client"
 
-import { Header } from "@/components/nbg/header";
-import { LeaderboardPage } from "@/components/nbg/leaderboard-page";
-import { Toaster } from "sonner";
+import dynamic from "next/dynamic"
+
+const Header = dynamic(() => import("@/components/nbg/header").then((mod) => mod.Header), {
+  ssr: false,
+})
+const LeaderboardPage = dynamic(
+  () => import("@/components/nbg/leaderboard-page").then((mod) => mod.LeaderboardPage),
+  { ssr: false },
+)
+const Toaster = dynamic(() => import("sonner").then((mod) => mod.Toaster), {
+  ssr: false,
+})
 
 export default function Leaderboard() {
   return (
@@ -20,5 +29,5 @@ export default function Leaderboard() {
       <Header />
       <LeaderboardPage />
     </main>
-  );
+  )
 }

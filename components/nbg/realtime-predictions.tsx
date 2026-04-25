@@ -49,10 +49,10 @@ export function RealtimePredictions() {
   const bannerEventLabel = firstLiveScenario ? `ROUND ${firstLiveScenario.round}` : "LIVE"
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="page-shell">
       {/* Event Banner */}
-      <div className="bg-[#d4a300] border-b border-[#b8860b]">
-        <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="border-b border-primary/20 bg-gradient-to-r from-primary/75 via-primary/60 to-primary/75">
+        <div className="page-container py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <span className="relative flex h-3 w-3">
@@ -80,33 +80,34 @@ export function RealtimePredictions() {
       </div>
 
       {/* User Stats Bar */}
-      <div className="bg-[#1a1a1a] border-b border-[#333]">
-        <div className="max-w-7xl mx-auto px-4 py-3">
+      <div className="border-b border-border bg-muted/40">
+        <div className="page-container py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
-                <Coins className="w-5 h-5 text-[#d4a300]" />
-                <span className="font-bold text-white">{(profile?.points ?? 0).toLocaleString()}</span>
-                <span className="text-sm text-white/60">KP</span>
+                <Coins className="w-5 h-5 text-primary" />
+                <span className="font-bold text-foreground">{(profile?.points ?? 0).toLocaleString()}</span>
+                <span className="text-sm text-muted-foreground">KP</span>
               </div>
               <div className="flex items-center gap-2">
-                <Award className="w-5 h-5 text-[#d4a300]" />
-                <span className="font-bold text-white">{profile?.nftCount ?? 0}</span>
-                <span className="text-sm text-white/60">NFTs</span>
+                <Award className="w-5 h-5 text-primary" />
+                <span className="font-bold text-foreground">{profile?.nftCount ?? 0}</span>
+                <span className="text-sm text-muted-foreground">NFTs</span>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-white/60">
-              <Zap className="w-4 h-4 text-[#d4a300]" />
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Zap className="w-4 h-4 text-primary" />
               <span>New windows open during live events</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="border-b border-border bg-gradient-to-br from-primary/10 via-background to-destructive/10">
-        <div className="max-w-7xl mx-auto px-4 py-10">
+      <div className="page-hero">
+        <div className="page-container py-10">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div>
+              <div className="section-kicker mb-3">Live scenario sync</div>
               <h1 className="text-3xl md:text-4xl font-black mb-3">LIVE SCENARIO SYNC</h1>
               <p className="text-muted-foreground max-w-2xl">
                 Claim your badge, load event energy, and allocate your read of the fight before the window locks.
@@ -123,9 +124,9 @@ export function RealtimePredictions() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="page-container py-8">
         {/* Fighter Battle Image */}
-        <div className="relative mb-8 rounded-xl overflow-hidden">
+        <div className="page-panel relative mb-8 overflow-hidden">
           <img
             src="/images/fighters-battle.jpg"
             alt="Fight in progress"
@@ -144,7 +145,7 @@ export function RealtimePredictions() {
 
         <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
           <section className="space-y-4">
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="page-panel p-5">
               <div className="flex items-center gap-2 text-sm font-semibold text-primary">
                 <Sparkles className="w-4 h-4" />
                 Testnet onboarding
@@ -169,7 +170,7 @@ export function RealtimePredictions() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="page-panel p-5">
               <h3 className="text-lg font-black">How this screen works</h3>
               <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                 <li>1. Claim your badge once for profile activation.</li>
@@ -181,10 +182,10 @@ export function RealtimePredictions() {
           </section>
 
           <section className="space-y-4">
-            {scenariosQuery.isLoading && <div className="rounded-2xl border border-border bg-card p-6">Loading live scenarios...</div>}
+            {scenariosQuery.isLoading && <div className="page-panel p-6">Loading live scenarios...</div>}
 
             {!scenariosQuery.isLoading && liveScenarios.length === 0 && (
-              <div className="rounded-2xl border border-border bg-card p-6">
+              <div className="page-panel p-6">
                 <h3 className="text-lg font-black">No active scenarios</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Open the admin console and publish a scenario for the live event.
@@ -203,7 +204,7 @@ export function RealtimePredictions() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.06 }}
-                  className="rounded-2xl border border-border bg-card p-6"
+                  className="page-panel p-6"
                 >
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div>
@@ -227,7 +228,7 @@ export function RealtimePredictions() {
                       </div>
                     </div>
 
-                    <div className="rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm">
+                    <div className="rounded-2xl border border-border bg-muted/30 px-4 py-3 text-sm">
                       <div className="text-muted-foreground">Window closes</div>
                       <div className="font-semibold">{new Date(scenario.lockAt).toLocaleTimeString()}</div>
                     </div>
@@ -281,7 +282,7 @@ export function RealtimePredictions() {
                             [scenario.id]: Number(event.target.value),
                           }))
                         }
-                        className="w-32 rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                        className="w-32 rounded-2xl border border-border bg-background px-3 py-2 text-sm"
                       />
                       <span className="text-xs text-muted-foreground">
                         Available: {profile?.energy ?? 0}
@@ -316,7 +317,7 @@ export function RealtimePredictions() {
         </div>
 
         {/* Reward System */}
-        <div className="mt-8 p-6 bg-muted/50 border border-dashed border-border rounded-xl">
+        <div className="mt-8 rounded-2xl border border-dashed border-border bg-muted/50 p-6 shadow-sm">
           <h4 className="font-bold mb-3 flex items-center gap-2">
             <Award className="w-5 h-5 text-primary" />
             Reward System
@@ -351,7 +352,7 @@ function StatCard({
   value: string
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card px-4 py-3">
+    <div className="page-panel px-4 py-3">
       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         <Icon className="w-4 h-4 text-primary" />
         {label}

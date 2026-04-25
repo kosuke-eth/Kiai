@@ -20,11 +20,13 @@ export async function POST(request: Request, ctx: RouteContext<"/api/scenarios/[
     const { id } = await ctx.params
     const input = settleSchema.parse(await request.json())
     const existingScenario = getKiaiStore().getScenario(id)
+    const chainScenarioId = existingScenario.chainScenarioId
+    const usedOnchainSettle = Boolean(isSuiAdminWriteConfigured() && chainScenarioId)
 
-    if (isSuiAdminWriteConfigured() && existingScenario.chainScenarioId) {
+    if (usedOnchainSettle) {
       const transaction = createAdminSettleTransaction({
         adminCapId: getAdminCapId(),
-        chainScenarioId: existingScenario.chainScenarioId,
+        chainScenarioId: chainScenarioId!,
         winningSide: input.winningSide,
       })
 
@@ -34,6 +36,7 @@ export async function POST(request: Request, ctx: RouteContext<"/api/scenarios/[
     const scenario = getKiaiStore().settleScenario({
       scenarioId: id,
       winningSide: input.winningSide,
+      skipPointDistribution: usedOnchainSettle,
     })
 
     return NextResponse.json({ scenario })

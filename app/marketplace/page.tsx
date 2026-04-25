@@ -1,6 +1,4 @@
-import { Header } from "@/components/nbg/header"
-import { MarketplacePage } from "@/components/nbg/marketplace-page"
-import { Toaster } from "sonner"
+import { MarketplaceClientPage } from "./page-client"
 
 export const metadata = {
   title: "Marketplace - KIAI",
@@ -8,11 +6,5 @@ export const metadata = {
 }
 
 export default function Page() {
-  return (
-    <main className="min-h-screen bg-background">
-      <Toaster position="top-center" />
-      <Header />
-      <MarketplacePage />
-    </main>
-  )
+  return <MarketplaceClientPage />
 }

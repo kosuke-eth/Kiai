@@ -83,13 +83,14 @@ export function MarketplacePage() {
   }, [marketplaceQuery.data?.items, selectedCategory])
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="bg-[#1a1a1a] text-white">
-        <div className="max-w-7xl mx-auto px-4 py-12">
+    <div className="page-shell">
+      <div className="page-hero-soft">
+        <div className="page-container py-12">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
+              <div className="section-kicker mb-3">Redeem rewards</div>
               <h1 className="text-3xl md:text-4xl font-black mb-2">KIAI MARKETPLACE</h1>
-              <p className="text-white/70">Redeem KP and badge inventory for event-linked rewards.</p>
+              <p className="text-muted-foreground">Redeem KP and badge inventory for event-linked rewards.</p>
             </div>
             <div className="flex items-center gap-6">
               <BalanceCard icon={Coins} label="KIAI Points" value={profile?.points.toLocaleString() ?? "0"} />
@@ -100,16 +101,16 @@ export function MarketplacePage() {
       </div>
 
       <div className="border-b border-border bg-muted/30">
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="page-container">
           <div className="flex items-center gap-2 overflow-x-auto py-4 scrollbar-hide">
             {CATEGORIES.map((category) => (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`flex items-center gap-2 px-4 py-2 whitespace-nowrap font-semibold text-sm transition-colors ${
+                className={`flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
                   selectedCategory === category.id
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-card border border-border hover:border-primary text-foreground"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "border border-border bg-card text-foreground hover:border-primary"
                 }`}
               >
                 <category.icon className="w-4 h-4" />
@@ -120,21 +121,13 @@ export function MarketplacePage() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {marketplaceQuery.isLoading && <div className="rounded-xl border border-border bg-card p-6">Loading marketplace...</div>}
+      <main className="page-container py-8">
+        {marketplaceQuery.isLoading && <div className="page-panel p-6">Loading marketplace...</div>}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredItems.map((item, index) => {
             const ownedCount = purchaseHistory.filter((entry) => entry === item.id).length
             const limitReached = ownedCount >= item.maxPerUser
-            const canAffordPoints = (profile?.points ?? 0) >= item.pointsCost
-            const canAffordNfts = (profile?.nftCount ?? 0) >= (item.nftCount ?? 0)
-            const canAfford =
-              item.paymentType === "points"
-                ? canAffordPoints
-                : item.paymentType === "nft"
-                  ? canAffordNfts
-                  : canAffordPoints && canAffordNfts
             const Icon = getCategoryIcon(item.category)
 
             return (
@@ -340,12 +333,12 @@ function BalanceCard({
   value: string
 }) {
   return (
-    <div className="text-center px-6 py-3 bg-white/10 rounded-lg">
+    <div className="rounded-2xl border border-border bg-card px-6 py-4 text-center shadow-sm">
       <div className="flex items-center gap-2 justify-center mb-1">
         <Icon className="w-5 h-5 text-primary" />
-        <span className="text-2xl font-black">{value}</span>
+        <span className="text-2xl font-black text-foreground">{value}</span>
       </div>
-      <span className="text-xs text-white/60">{label}</span>
+      <span className="text-xs text-muted-foreground">{label}</span>
     </div>
   )
 }

@@ -1,8 +1,16 @@
-"use client";
+"use client"
 
-import { Header } from "@/components/nbg/header";
-import { EventsPage } from "@/components/nbg/events-page";
-import { Toaster } from "sonner";
+import dynamic from "next/dynamic"
+
+const Header = dynamic(() => import("@/components/nbg/header").then((mod) => mod.Header), {
+  ssr: false,
+})
+const EventsPage = dynamic(() => import("@/components/nbg/events-page").then((mod) => mod.EventsPage), {
+  ssr: false,
+})
+const Toaster = dynamic(() => import("sonner").then((mod) => mod.Toaster), {
+  ssr: false,
+})
 
 export default function Events() {
   return (
@@ -20,5 +28,5 @@ export default function Events() {
       <Header />
       <EventsPage />
     </main>
-  );
+  )
 }

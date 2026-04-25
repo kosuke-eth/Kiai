@@ -60,6 +60,20 @@ export interface SponsorResponse {
   sponsorAddress: string
 }
 
+export interface SponsorChallengeResponse {
+  nonce: string
+  issuedAt: number
+  expiresAt: number
+  message: string
+  token: string
+}
+
+export interface SponsorAuthPayload {
+  message: string
+  signature: string
+  token: string
+}
+
 export const kiaiApi = {
   getEvents() {
     return requestJson<EventsResponse>("/api/events")
@@ -154,13 +168,20 @@ export const kiaiApi = {
       body: JSON.stringify(body),
     })
   },
+  createSponsorChallenge(address: string) {
+    return requestJson<SponsorChallengeResponse>("/api/sponsor/challenge", {
+      method: "POST",
+      body: JSON.stringify({ address }),
+    })
+  },
   sponsorTransaction(
     body:
-      | { action: "claim_badge"; sender: string }
-      | { action: "claim_energy"; sender: string }
+      | { action: "claim_badge"; sender: string; auth: SponsorAuthPayload }
+      | { action: "claim_energy"; sender: string; auth: SponsorAuthPayload }
       | {
           action: "allocate_insight"
           sender: string
+          auth: SponsorAuthPayload
           chainScenarioId: string
           side: "yes" | "no"
           energyAmount: number

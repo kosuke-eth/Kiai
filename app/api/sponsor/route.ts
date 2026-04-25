@@ -3,6 +3,7 @@ import { Transaction } from "@mysten/sui/transactions"
 import { normalizeSuiAddress, toBase64 } from "@mysten/sui/utils"
 import { z } from "zod"
 
+import { assertSponsorRateLimit, verifySponsorChallenge } from "@/lib/sponsor-auth"
 import { getAdminKeypair, getSuiClient, isSuiAdminWriteConfigured } from "@/lib/sui/server"
 import {
   createAllocateInsightTransaction,
@@ -10,18 +11,27 @@ import {
   createClaimEnergyTransaction,
 } from "@/lib/sui/transactions"
 
+const sponsorAuthSchema = z.object({
+  message: z.string().min(1),
+  signature: z.string().min(1),
+  token: z.string().min(1),
+})
+
 const sponsorSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("claim_badge"),
     sender: z.string().min(1),
+    auth: sponsorAuthSchema,
   }),
   z.object({
     action: z.literal("claim_energy"),
     sender: z.string().min(1),
+    auth: sponsorAuthSchema,
   }),
   z.object({
     action: z.literal("allocate_insight"),
     sender: z.string().min(1),
+    auth: sponsorAuthSchema,
     chainScenarioId: z.string().min(1),
     side: z.enum(["yes", "no"]),
     energyAmount: z.number().int().positive().max(1000),
@@ -39,6 +49,16 @@ export async function POST(request: Request) {
     const sponsor = getAdminKeypair()
     const sponsorAddress = sponsor.toSuiAddress()
     const normalizedSender = normalizeSuiAddress(input.sender)
+    const requestIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null
+
+    await verifySponsorChallenge({
+      address: normalizedSender,
+      message: input.auth.message,
+      signature: input.auth.signature,
+      token: input.auth.token,
+    })
+    assertSponsorRateLimit(normalizedSender, requestIp)
+
     const coins = await client.getCoins({ owner: sponsorAddress })
 
     if (coins.data.length === 0) {
@@ -56,28 +76,39 @@ export async function POST(request: Request) {
               energyAmount: input.energyAmount,
             })
 
-    transaction.setSender(normalizedSender)
-    transaction.setGasOwner(sponsorAddress)
-    transaction.setGasPayment(
-      coins.data.slice(0, 8).map((coin) => ({
+    const gasPayment = coins.data.slice(0, 8).map((coin) => ({
         objectId: coin.coinObjectId,
         version: coin.version,
         digest: coin.digest,
-      })),
-    )
+      }))
 
-    const transactionBytes = await transaction.build({ client })
+    // Build the programmable transaction first, then attach sponsor gas metadata.
+    // Mysten's sponsored-transaction flow requires reconstructing from TransactionKind
+    // so sender/gas owner are preserved correctly in the final bytes.
+    const transactionKindBytes = await transaction.build({ client, onlyTransactionKind: true })
+    const sponsoredTransaction = Transaction.fromKind(transactionKindBytes)
+
+    sponsoredTransaction.setSender(normalizedSender)
+    sponsoredTransaction.setGasOwner(sponsorAddress)
+    sponsoredTransaction.setGasPayment(gasPayment)
+
+    const transactionBytes = await sponsoredTransaction.build({ client })
     const sponsorSignature = (await sponsor.signTransaction(transactionBytes)).signature
-    const sponsoredTransaction = await Transaction.from(transactionBytes).toJSON({ client })
+    const sponsoredTransactionJson = await sponsoredTransaction.toJSON({ client })
 
     return NextResponse.json({
-      sponsoredTransaction,
+      sponsoredTransaction: sponsoredTransactionJson,
       sponsoredTransactionBytes: toBase64(transactionBytes),
       sponsorSignature,
       sponsorAddress,
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to sponsor transaction"
-    return new NextResponse(message, { status: 400 })
+    const status = message.startsWith("Too many sponsor requests")
+      ? 429
+      : /challenge|signature|signed sender|requested sender|expired/i.test(message)
+        ? 403
+        : 400
+    return new NextResponse(message, { status })
   }
 }

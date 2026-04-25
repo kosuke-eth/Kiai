@@ -25,6 +25,7 @@ import {
 const DATA_DIRECTORY = join(process.cwd(), ".data")
 const DATA_FILE = join(DATA_DIRECTORY, "kiai-store.json")
 const STORE_VERSION = 1
+const STORE_RUNTIME_VERSION = 4
 
 const EVENTS: KiaiEvent[] = [
   {
@@ -73,7 +74,7 @@ const MARKETPLACE_ITEMS: MarketplaceItem[] = [
     pointsCost: 50000,
     stock: 3,
     maxPerUser: 1,
-    image: "/images/fighters-battle.jpg",
+    image: "/images/marketplace/vip-ringside-v2.jpg",
     badge: "HOT",
     paymentType: "points",
   },
@@ -87,7 +88,7 @@ const MARKETPLACE_ITEMS: MarketplaceItem[] = [
     nftCount: 1,
     stock: 2,
     maxPerUser: 1,
-    image: "/images/fighters-battle.jpg",
+    image: "/images/marketplace/training-camp-v3.jpg",
     badge: "EXCLUSIVE",
     paymentType: "both",
   },
@@ -99,7 +100,7 @@ const MARKETPLACE_ITEMS: MarketplaceItem[] = [
     pointsCost: 8000,
     stock: 20,
     maxPerUser: 1,
-    image: "/images/fighters-battle.jpg",
+    image: "/images/marketplace/hoodie.jpg",
     badge: "LIMITED",
     paymentType: "points",
   },
@@ -111,7 +112,7 @@ const MARKETPLACE_ITEMS: MarketplaceItem[] = [
     pointsCost: 1000,
     stock: 50,
     maxPerUser: 10,
-    image: "/images/fighters-battle.jpg",
+    image: "/images/marketplace/combat-iq-nft-v2.jpg",
     badge: "EXCHANGE",
     paymentType: "points",
     isNftExchange: true,
@@ -124,7 +125,7 @@ const MARKETPLACE_ITEMS: MarketplaceItem[] = [
     pointsCost: 75000,
     stock: 3,
     maxPerUser: 1,
-    image: "/images/fighters-battle.jpg",
+    image: "/images/marketplace/meet-greet-v3.jpg",
     badge: "VIP",
     paymentType: "points",
   },
@@ -229,6 +230,7 @@ interface PersistedStore {
   profiles: Record<string, UserProfile>
   leaderboardSeed: Omit<LeaderboardEntry, "rank">[]
   purchaseHistory: Record<string, string[]>
+  processedDigests?: string[]
 }
 
 function createSeedScenario(input: {
@@ -284,6 +286,7 @@ function createInitialSnapshot(): PersistedStore {
     profiles: structuredClone(SEEDED_PROFILES),
     leaderboardSeed: structuredClone(SEEDED_LEADERBOARD),
     purchaseHistory: {},
+    processedDigests: [],
   }
 }
 
@@ -299,15 +302,22 @@ function loadPersistedSnapshot(): PersistedStore {
       return fallback
     }
 
+    const persistedMarketplaceItems = Array.isArray(raw.marketplaceItems) ? raw.marketplaceItems : fallback.marketplaceItems
+    const canonicalMarketplaceImages = new Map(fallback.marketplaceItems.map((item) => [item.id, item.image]))
+
     return {
       version: STORE_VERSION,
       events: Array.isArray(raw.events) ? raw.events : fallback.events,
-      marketplaceItems: Array.isArray(raw.marketplaceItems) ? raw.marketplaceItems : fallback.marketplaceItems,
+      marketplaceItems: persistedMarketplaceItems.map((item) => ({
+        ...item,
+        image: canonicalMarketplaceImages.get(item.id) ?? item.image,
+      })),
       scenarios: Array.isArray(raw.scenarios) ? raw.scenarios : fallback.scenarios,
       profiles: raw.profiles && typeof raw.profiles === "object" ? raw.profiles : fallback.profiles,
       leaderboardSeed: Array.isArray(raw.leaderboardSeed) ? raw.leaderboardSeed : fallback.leaderboardSeed,
       purchaseHistory:
         raw.purchaseHistory && typeof raw.purchaseHistory === "object" ? raw.purchaseHistory : fallback.purchaseHistory,
+      processedDigests: Array.isArray(raw.processedDigests) ? raw.processedDigests : fallback.processedDigests,
     }
   } catch {
     return fallback
@@ -320,12 +330,15 @@ function writePersistedSnapshot(snapshot: PersistedStore) {
 }
 
 class KiaiStore {
+  readonly runtimeVersion = STORE_RUNTIME_VERSION
+
   private events: KiaiEvent[]
   private marketplaceItems: MarketplaceItem[]
   private scenarios: KiaiScenario[]
   private profiles: Record<string, UserProfile>
   private leaderboardSeed: Omit<LeaderboardEntry, "rank">[]
   private purchaseHistory: Map<string, string[]>
+  private processedDigests: Set<string>
 
   constructor(snapshot = loadPersistedSnapshot()) {
     this.events = structuredClone(snapshot.events)
@@ -334,6 +347,7 @@ class KiaiStore {
     this.profiles = structuredClone(snapshot.profiles)
     this.leaderboardSeed = structuredClone(snapshot.leaderboardSeed)
     this.purchaseHistory = new Map(Object.entries(snapshot.purchaseHistory))
+    this.processedDigests = new Set(snapshot.processedDigests ?? [])
   }
 
   getDefaultAddress() {
@@ -354,10 +368,49 @@ class KiaiStore {
       if (input?.eventId && scenario.eventId !== input.eventId) return false
       if (!input?.state) return true
       if (input.state === "active") {
-        return scenario.state === "open" || scenario.state === "locked"
+        return scenario.state === "open"
       }
       return scenario.state === input.state
     })
+  }
+
+  syncChainScenarios(chainScenarios: KiaiScenario[]) {
+    if (chainScenarios.length === 0) {
+      return this.scenarios
+    }
+
+    const remainingChainScenarios = new Map(
+      chainScenarios
+        .filter((scenario) => scenario.chainScenarioId)
+        .map((scenario) => [scenario.chainScenarioId!, structuredClone(scenario)]),
+    )
+
+    this.scenarios = this.scenarios.map((scenario) => {
+      const chainScenarioId = scenario.chainScenarioId
+      if (!chainScenarioId) {
+        return scenario
+      }
+
+      const nextScenario = remainingChainScenarios.get(chainScenarioId)
+      if (!nextScenario) {
+        return scenario
+      }
+
+      remainingChainScenarios.delete(chainScenarioId)
+      return {
+        ...scenario,
+        ...nextScenario,
+        id: scenario.id,
+        chainScenarioId,
+      }
+    })
+
+    for (const scenario of remainingChainScenarios.values()) {
+      this.scenarios.unshift(scenario)
+    }
+
+    this.persist()
+    return this.scenarios
   }
 
   createScenario(input: {
@@ -410,7 +463,7 @@ class KiaiStore {
 
   getScenario(id: string) {
     this.syncScenarioStates()
-    const scenario = this.scenarios.find((item) => item.id === id)
+    const scenario = this.scenarios.find((item) => item.id === id || item.chainScenarioId === id)
     if (!scenario) {
       throw new Error("Scenario not found")
     }
@@ -497,6 +550,12 @@ class KiaiStore {
     return this.ensureProfile(address)
   }
 
+  syncChainProfile(profile: UserProfile) {
+    this.profiles[profile.address] = structuredClone(profile)
+    this.persist()
+    return this.profiles[profile.address]
+  }
+
   claimBadge(address?: string) {
     const profile = this.ensureProfile(address)
     if (!profile.badgeClaimed) {
@@ -521,7 +580,12 @@ class KiaiStore {
     return profile
   }
 
-  allocateInsight(input: { scenarioId: string; address?: string; side: ScenarioSide; energyAmount: number }) {
+  allocateInsight(input: {
+    scenarioId: string
+    address?: string
+    side: ScenarioSide
+    energyAmount: number
+  }) {
     this.syncScenarioStates()
     const scenario = this.getScenario(input.scenarioId)
     if (scenario.state !== "open") {
@@ -551,7 +615,7 @@ class KiaiStore {
     return { scenario, profile }
   }
 
-  settleScenario(input: { scenarioId: string; winningSide: ScenarioSide }) {
+  settleScenario(input: { scenarioId: string; winningSide: ScenarioSide; skipPointDistribution?: boolean }) {
     this.syncScenarioStates()
     const scenario = this.getScenario(input.scenarioId)
     if (scenario.state === "archived") {
@@ -569,30 +633,32 @@ class KiaiStore {
     scenario.winningSide = input.winningSide
     scenario.settledAt = new Date().toISOString()
 
-    const seenCorrectAddresses = new Set<string>()
+    if (!input.skipPointDistribution) {
+      const seenCorrectAddresses = new Set<string>()
 
-    for (const allocation of scenario.allocations) {
-      const profile = this.ensureProfile(allocation.address)
-      profile.totalCalls += 1
+      for (const allocation of scenario.allocations) {
+        const profile = this.ensureProfile(allocation.address)
+        profile.totalCalls += 1
 
-      if (allocation.side === input.winningSide) {
-        const pointsAward = allocation.energyAmount * 2
-        const xpAward = Math.max(20, Math.floor(allocation.energyAmount / 2))
-        profile.points += pointsAward
-        profile.badgeXp += xpAward
-        profile.correctCalls += 1
-        profile.streak += 1
-        seenCorrectAddresses.add(profile.address)
-      } else {
-        profile.streak = 0
+        if (allocation.side === input.winningSide) {
+          const pointsAward = allocation.energyAmount * 2
+          const xpAward = Math.max(20, Math.floor(allocation.energyAmount / 2))
+          profile.points += pointsAward
+          profile.badgeXp += xpAward
+          profile.correctCalls += 1
+          profile.streak += 1
+          seenCorrectAddresses.add(profile.address)
+        } else {
+          profile.streak = 0
+        }
+
+        profile.badgeTier = getBadgeTierFromXp(profile.badgeXp)
       }
 
-      profile.badgeTier = getBadgeTierFromXp(profile.badgeXp)
-    }
-
-    for (const address of Object.keys(this.profiles)) {
-      if (!seenCorrectAddresses.has(address) && this.profiles[address].totalCalls > 0) {
-        this.profiles[address].badgeTier = getBadgeTierFromXp(this.profiles[address].badgeXp)
+      for (const address of Object.keys(this.profiles)) {
+        if (!seenCorrectAddresses.has(address) && this.profiles[address].totalCalls > 0) {
+          this.profiles[address].badgeTier = getBadgeTierFromXp(this.profiles[address].badgeXp)
+        }
       }
     }
 
@@ -667,6 +733,15 @@ class KiaiStore {
     return this.purchaseHistory.get(profile.address) ?? []
   }
 
+  hasProcessedDigest(digest: string): boolean {
+    return this.processedDigests.has(digest)
+  }
+
+  markDigestProcessed(digest: string): void {
+    this.processedDigests.add(digest)
+    this.persist()
+  }
+
   private countParticipantsForEvent(eventId: string) {
     return this.scenarios
       .filter((scenario) => scenario.eventId === eventId && scenario.state !== "archived")
@@ -681,6 +756,9 @@ class KiaiStore {
       }
       if (scenario.state === "archived" || scenario.archivedAt) {
         return { ...scenario, state: "archived" }
+      }
+      if (scenario.chainScenarioId) {
+        return scenario
       }
       if (scenario.lockedAt) {
         return { ...scenario, state: "locked" }
@@ -706,6 +784,7 @@ class KiaiStore {
       profiles: this.profiles,
       leaderboardSeed: this.leaderboardSeed,
       purchaseHistory: Object.fromEntries(this.purchaseHistory),
+      processedDigests: [...this.processedDigests],
     })
   }
 }
@@ -715,6 +794,12 @@ declare global {
 }
 
 export function getKiaiStore() {
-  globalThis.__kiaiStore ??= new KiaiStore()
+  if (
+    !globalThis.__kiaiStore ||
+    globalThis.__kiaiStore.runtimeVersion !== STORE_RUNTIME_VERSION ||
+    typeof globalThis.__kiaiStore.syncChainScenarios !== "function"
+  ) {
+    globalThis.__kiaiStore = new KiaiStore()
+  }
   return globalThis.__kiaiStore
 }

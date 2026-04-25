@@ -165,10 +165,11 @@ export function AthletesPage() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="page-shell">
       {/* Header */}
-      <div className="bg-muted/30 border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="page-hero-soft">
+        <div className="page-container py-10">
+          <div className="section-kicker mb-3">Roster view</div>
           <h1 className="text-3xl font-black mb-2">ATHLETES</h1>
           <p className="text-muted-foreground">
             Browse ONE Championship athletes and their prediction statistics
@@ -176,9 +177,9 @@ export function AthletesPage() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="page-container py-6">
         {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="mb-8 flex flex-col gap-4 md:flex-row">
           {/* Search */}
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -187,7 +188,7 @@ export function AthletesPage() {
               placeholder="Search athletes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              className="w-full rounded-2xl border border-border bg-card py-3 pl-10 pr-4 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
 
@@ -196,7 +197,7 @@ export function AthletesPage() {
             <select
               value={selectedDivision}
               onChange={(e) => setSelectedDivision(e.target.value)}
-              className="appearance-none px-4 py-2.5 pr-10 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              className="appearance-none rounded-2xl border border-border bg-card px-4 py-3 pr-10 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
               {DIVISIONS.map((div) => (
                 <option key={div} value={div}>{div}</option>
@@ -206,15 +207,15 @@ export function AthletesPage() {
           </div>
 
           {/* Sort */}
-          <div className="flex items-center gap-2 bg-muted p-1 rounded-lg">
+          <div className="segmented-control">
             {(["ranking", "predictions", "winRate"] as const).map((s) => (
               <button
                 key={s}
                 onClick={() => setSortBy(s)}
-                className={`px-3 py-1.5 text-sm font-semibold rounded transition-colors ${
+                className={`segmented-pill ${
                   sortBy === s
-                    ? "bg-background text-foreground shadow"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "segmented-pill-active"
+                    : "segmented-pill-idle"
                 }`}
               >
                 {s === "ranking" ? "Ranking" : s === "predictions" ? "Predictions" : "Win Rate"}
@@ -231,20 +232,20 @@ export function AthletesPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
-              className="bg-card border border-border rounded-xl overflow-hidden hover:border-primary/50 transition-colors"
+              className="page-panel overflow-hidden transition-colors hover:border-primary/50"
             >
               {/* Avatar placeholder */}
-              <div className="h-32 bg-gradient-to-br from-primary/10 to-muted flex items-center justify-center relative">
+              <div className="relative flex h-32 items-center justify-center bg-gradient-to-br from-primary/10 to-muted">
                 <div className="w-20 h-20 rounded-full bg-muted-foreground/20 flex items-center justify-center text-2xl font-bold text-muted-foreground">
                   {athlete.name.split(" ").map(n => n[0]).join("")}
                 </div>
                 {athlete.isChampion && (
-                  <div className="absolute top-3 right-3 p-1.5 bg-primary rounded-full">
+                  <div className="absolute top-3 right-3 rounded-full border border-primary/30 bg-primary/90 p-1.5">
                     <Trophy className="w-4 h-4 text-primary-foreground" />
                   </div>
                 )}
                 {athlete.ranking && (
-                  <div className="absolute top-3 left-3 px-2 py-0.5 bg-black/70 text-white text-xs font-bold rounded">
+                  <div className="absolute top-3 left-3 rounded-full border border-white/15 bg-black/75 px-2.5 py-1 text-xs font-bold text-white">
                     #{athlete.ranking}
                   </div>
                 )}
@@ -260,10 +261,10 @@ export function AthletesPage() {
                   </div>
                 </div>
 
-                <p className="text-sm text-primary font-semibold mb-4">{athlete.division}</p>
+                <p className="mb-4 text-sm font-semibold text-primary">{athlete.division}</p>
 
                 {/* Prediction Stats */}
-                <div className="grid grid-cols-3 gap-2 pt-4 border-t border-border">
+                <div className="grid grid-cols-3 gap-2 border-t border-border pt-4">
                   <div className="text-center">
                     <div className="flex items-center justify-center gap-1 text-sm font-bold">
                       <Target className="w-3.5 h-3.5 text-primary" />

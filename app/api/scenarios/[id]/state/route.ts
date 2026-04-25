@@ -10,6 +10,13 @@ const lifecycleSchema = z.object({
   action: z.enum(["publish", "lock", "archive"]),
 })
 
+function isChainArchiveStateMismatch(error: unknown) {
+  return (
+    error instanceof Error &&
+    /abort code:\s*5\b|EScenarioCannotArchive|archive_scenario/i.test(error.message)
+  )
+}
+
 export async function POST(
   request: Request,
   context: { params: Promise<{ id: string }> },
@@ -25,13 +32,44 @@ export async function POST(
     const existingScenario = getKiaiStore().getScenario(id)
 
     if (isSuiAdminWriteConfigured() && existingScenario.chainScenarioId) {
-      const transaction = createAdminLifecycleTransaction({
-        adminCapId: getAdminCapId(),
-        chainScenarioId: existingScenario.chainScenarioId,
-        action,
-      })
+      const adminCapId = getAdminCapId()
 
-      await executeAdminTransaction(transaction)
+      try {
+        const transaction = createAdminLifecycleTransaction({
+          adminCapId,
+          chainScenarioId: existingScenario.chainScenarioId,
+          action,
+        })
+
+        await executeAdminTransaction(transaction)
+      } catch (error) {
+        // The UI/read model can derive "locked" from elapsed time before the on-chain
+        // scenario has been explicitly transitioned out of the open state. In that case,
+        // archive must first perform an on-chain lock.
+        if (
+          action === "archive" &&
+          existingScenario.state === "locked" &&
+          isChainArchiveStateMismatch(error)
+        ) {
+          await executeAdminTransaction(
+            createAdminLifecycleTransaction({
+              adminCapId,
+              chainScenarioId: existingScenario.chainScenarioId,
+              action: "lock",
+            }),
+          )
+
+          await executeAdminTransaction(
+            createAdminLifecycleTransaction({
+              adminCapId,
+              chainScenarioId: existingScenario.chainScenarioId,
+              action: "archive",
+            }),
+          )
+        } else {
+          throw error
+        }
+      }
     }
 
     const scenario = getKiaiStore().updateScenarioLifecycle({

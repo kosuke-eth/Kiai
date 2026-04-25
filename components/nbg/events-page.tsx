@@ -26,25 +26,26 @@ export function EventsPage() {
   const liveEvent = events.find((event) => event.status === "live")
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="page-shell">
       {liveEvent && (
-        <section className="gold-bg">
-          <div className="max-w-7xl mx-auto px-4 py-10 md:py-16">
+        <section className="page-hero-soft">
+          <div className="page-container py-10 md:py-14">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
               <div>
+                <div className="section-kicker mb-3">Live event</div>
                 <div className="flex items-center gap-2 mb-3">
                   <span className="relative flex h-3 w-3">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-destructive"></span>
                   </span>
-                  <span className="text-sm font-bold text-black">LIVE NOW</span>
+                  <span className="text-sm font-bold text-foreground">LIVE NOW</span>
                 </div>
-                <h1 className="text-4xl md:text-5xl font-black text-black mb-2">{liveEvent.name}</h1>
-                <p className="text-black/70 flex items-center gap-2">
+                <h1 className="text-4xl md:text-5xl font-black text-foreground mb-2">{liveEvent.name}</h1>
+                <p className="text-muted-foreground flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
                   {liveEvent.venue}, {liveEvent.location}
                 </p>
-                <div className="flex items-center gap-6 mt-4 text-black/80">
+                <div className="mt-4 flex flex-wrap items-center gap-6 text-foreground/80">
                   <div className="flex items-center gap-2">
                     <Target className="w-5 h-5" />
                     <span className="font-semibold">Live scenario sync enabled</span>
@@ -57,7 +58,7 @@ export function EventsPage() {
               </div>
               <Link
                 href="/predictions"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-black text-white font-bold text-lg rounded hover:bg-black/90 transition-colors"
+                className="inline-flex items-center gap-2 rounded-2xl bg-black px-8 py-4 text-lg font-bold text-white transition-colors hover:bg-black/90"
               >
                 Join Live Predictions
                 <ChevronRight className="w-5 h-5" />
@@ -67,20 +68,20 @@ export function EventsPage() {
         </section>
       )}
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="page-container py-8">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-black">EVENTS</h2>
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-muted-foreground" />
-            <div className="flex gap-1 bg-muted p-1 rounded-lg">
+            <div className="segmented-control">
               {(["all", "live", "upcoming", "past"] as const).map((value) => (
                 <button
                   key={value}
                   onClick={() => setFilter(value)}
-                  className={`px-4 py-1.5 text-sm font-semibold rounded transition-colors ${
+                  className={`segmented-pill ${
                     filter === value
-                      ? "bg-background text-foreground shadow"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "segmented-pill-active"
+                      : "segmented-pill-idle"
                   }`}
                 >
                   {value.charAt(0).toUpperCase() + value.slice(1)}
@@ -90,7 +91,7 @@ export function EventsPage() {
           </div>
         </div>
 
-        {eventsQuery.isLoading && <div className="rounded-xl border border-border bg-card p-6">Loading events...</div>}
+        {eventsQuery.isLoading && <div className="page-panel p-6">Loading events...</div>}
 
         <div className="grid gap-4">
           {filteredEvents.map((event, index) => (
@@ -102,7 +103,7 @@ export function EventsPage() {
             >
               <Link
                 href={event.status === "live" ? "/predictions" : "/admin"}
-                className={`block bg-card border rounded-xl overflow-hidden transition-all hover:border-primary/50 ${
+                className={`page-panel block overflow-hidden transition-all hover:border-primary/50 ${
                   event.featured ? "border-primary/30" : "border-border"
                 }`}
               >
@@ -122,21 +123,21 @@ export function EventsPage() {
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           {event.status === "live" ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-destructive/10 text-destructive text-xs font-bold rounded">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-bold text-destructive">
                               <Flame className="w-3 h-3" />
                               LIVE
                             </span>
                           ) : event.status === "upcoming" ? (
-                            <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded">
+                            <span className="status-chip bg-primary/10 text-primary">
                               UPCOMING
                             </span>
                           ) : (
-                            <span className="px-2 py-0.5 bg-muted text-muted-foreground text-xs font-bold rounded">
+                            <span className="status-chip bg-muted text-muted-foreground">
                               COMPLETED
                             </span>
                           )}
                           {event.featured && (
-                            <span className="px-2 py-0.5 bg-primary text-primary-foreground text-xs font-bold rounded">
+                            <span className="status-chip bg-primary text-primary-foreground">
                               FEATURED
                             </span>
                           )}

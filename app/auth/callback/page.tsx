@@ -8,7 +8,7 @@ import { useZkLogin } from "@/hooks/use-zklogin"
 export default function AuthCallbackPage() {
   const router = useRouter()
   const { completeZkLogin } = useZkLogin()
-  const [message, setMessage] = useState("Completing zkLogin with Google...")
+  const [message, setMessage] = useState("Completing zkLogin...")
   const [isPending, startTransition] = useTransition()
 
   useEffect(() => {
@@ -18,12 +18,12 @@ export default function AuthCallbackPage() {
     const error = queryParams.get("error") ?? hashParams.get("error")
 
     if (error) {
-      setMessage(`Google login failed: ${error}`)
+      setMessage(`OpenID login failed: ${error}`)
       return
     }
 
     if (!idToken) {
-      setMessage("Missing Google id_token in callback response")
+      setMessage("Missing id_token in callback response")
       return
     }
 
@@ -38,13 +38,22 @@ export default function AuthCallbackPage() {
     })
   }, [completeZkLogin, router])
 
+  const detailLines = message
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto flex min-h-screen max-w-xl items-center justify-center px-6">
         <div className="w-full border border-border bg-card p-8 shadow-xl">
           <p className="text-sm uppercase tracking-[0.3em] text-primary">KIAI zkLogin</p>
           <h1 className="mt-3 text-3xl font-black text-balance">Authenticating your Sui session</h1>
-          <p className="mt-4 text-sm text-muted-foreground">{message}</p>
+          <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+            {detailLines.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </div>
           {isPending ? <p className="mt-6 text-xs text-muted-foreground">Requesting salt and proof...</p> : null}
         </div>
       </div>

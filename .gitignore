@@ -48,3 +48,5 @@ move/build/
 Thumbs.db
 .idea/
 .vscode/
+.gstack/
+/.aura

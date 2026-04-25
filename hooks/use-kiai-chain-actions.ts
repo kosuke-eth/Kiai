@@ -1,9 +1,15 @@
 "use client"
 
-import { useCurrentAccount, useSignAndExecuteTransaction, useSignTransaction, useSuiClient } from "@mysten/dapp-kit"
+import {
+  useCurrentAccount,
+  useSignAndExecuteTransaction,
+  useSignPersonalMessage,
+  useSignTransaction,
+  useSuiClient,
+} from "@mysten/dapp-kit"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { fromBase64 } from "@mysten/sui/utils"
+import { fromBase64, normalizeSuiAddress } from "@mysten/sui/utils"
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519"
 import { getZkLoginSignature } from "@mysten/sui/zklogin"
 
@@ -24,6 +30,7 @@ export function useKiaiChainActions(address: string) {
   const client = useSuiClient()
   const signTransaction = useSignTransaction()
   const signAndExecuteTransaction = useSignAndExecuteTransaction()
+  const signPersonalMessage = useSignPersonalMessage()
   const { session: zkLoginSession } = useZkLogin()
 
   const activeAddress = currentAccount?.address ?? zkLoginSession?.address ?? address
@@ -47,10 +54,41 @@ export function useKiaiChainActions(address: string) {
       throw new Error("A connected wallet or zkLogin session is required")
     }
 
+    async function createSponsorAuth(sender: string) {
+      const challenge = await kiaiApi.createSponsorChallenge(sender)
+      const messageBytes = new TextEncoder().encode(challenge.message)
+
+      if (zkLoginSession && !currentAccount?.address) {
+        const ephemeralKeypair = Ed25519Keypair.fromSecretKey(zkLoginSession.ephemeralSecretKey)
+        const { signature: userSignature } = await ephemeralKeypair.signPersonalMessage(messageBytes)
+        return {
+          message: challenge.message,
+          token: challenge.token,
+          signature: getZkLoginSignature({
+            inputs: zkLoginSession.signatureInputs,
+            maxEpoch: zkLoginSession.maxEpoch,
+            userSignature,
+          }),
+        }
+      }
+
+      const signed = await signPersonalMessage.mutateAsync({
+        message: messageBytes,
+      })
+      return {
+        message: challenge.message,
+        token: challenge.token,
+        signature: signed.signature,
+      }
+    }
+
     if (sponsorEndpoint) {
       let payload: Awaited<ReturnType<typeof kiaiApi.sponsorTransaction>>
       try {
-        payload = await kiaiApi.sponsorTransaction(sponsorAction)
+        payload = await kiaiApi.sponsorTransaction({
+          ...sponsorAction,
+          auth: await createSponsorAuth(sponsorAction.sender),
+        })
       } catch (error) {
         if (currentAccount?.address && error instanceof Error && /not configured/i.test(error.message)) {
           return signAndExecuteTransaction.mutateAsync({
@@ -60,6 +98,9 @@ export function useKiaiChainActions(address: string) {
 
         throw error
       }
+
+      const requiresSponsorSignature =
+        normalizeSuiAddress(payload.sponsorAddress) !== normalizeSuiAddress(sponsorAction.sender)
 
       if (zkLoginSession && !currentAccount?.address) {
         const ephemeralKeypair = Ed25519Keypair.fromSecretKey(zkLoginSession.ephemeralSecretKey)
@@ -72,19 +113,20 @@ export function useKiaiChainActions(address: string) {
 
         return client.executeTransactionBlock({
           transactionBlock: payload.sponsoredTransactionBytes,
-          signature: [zkLoginSignature, payload.sponsorSignature],
+          signature: requiresSponsorSignature ? [zkLoginSignature, payload.sponsorSignature] : zkLoginSignature,
           options: {
             showEffects: true,
           },
         })
       }
 
+      const sponsoredTransaction = Transaction.from(fromBase64(payload.sponsoredTransactionBytes))
       const signed = await signTransaction.mutateAsync({
-        transaction: payload.sponsoredTransaction,
+        transaction: sponsoredTransaction,
       })
       return client.executeTransactionBlock({
-        transactionBlock: signed.bytes,
-        signature: [signed.signature, payload.sponsorSignature],
+        transactionBlock: payload.sponsoredTransactionBytes,
+        signature: requiresSponsorSignature ? [signed.signature, payload.sponsorSignature] : signed.signature,
         options: {
           showEffects: true,
         },

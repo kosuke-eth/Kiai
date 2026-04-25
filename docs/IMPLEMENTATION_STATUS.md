@@ -273,13 +273,13 @@ Confirmed after settlement:
 
 ## zkLogin Status
 
-zkLogin is implemented in code but not fully browser-verified because real Google OAuth credentials are still not configured.
+zkLogin is implemented in code, including a manual OpenID token completion path at `/auth/zklogin`.
 
 ### Implemented
 
 - nonce generation
 - ephemeral key generation and persistence
-- Google redirect initiation
+- optional Google redirect initiation
 - callback completion
 - salt fetch
 - prover request
@@ -287,15 +287,18 @@ zkLogin is implemented in code but not fully browser-verified because real Googl
 - zkLogin session persistence
 - zkLogin signature assembly with `getZkLoginSignature`
 - sponsored transaction submission path for zkLogin sessions
+- manual OpenID `id_token` handoff page for local proof/signature testing without Google OAuth setup
 
 ### Still external
 
-To run the browser flow end to end, the repo still needs:
+To run the automatic Google redirect flow end to end, the repo still needs:
 
 - `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 
-This is now a credentials/configuration gap, not an implementation gap.
+The repo no longer hard-blocks without those values because `/auth/zklogin` can prepare the ephemeral session locally and complete zkLogin with an existing supported OpenID `id_token`.
+
+This is now mostly an identity-provider credentials/configuration gap, not a proof-generation or signing gap.
 
 ## Validation Commands That Pass
 
@@ -311,7 +314,7 @@ The following checks pass in the current repo:
 - The current implementation is not just a local mock anymore.
 - The app is now capable of reading and mutating real state on Sui Testnet.
 - The local store still exists as a fallback and mirror, but the key user and admin flows have been proven against the deployed shared object.
-- The main unfinished browser-facing piece is live Google credential wiring for zkLogin OAuth.
+- The main unfinished browser-facing piece is choosing and wiring a permanent provider-backed OAuth path for zkLogin.
 
 ## Recommended Next Documents To Read
 

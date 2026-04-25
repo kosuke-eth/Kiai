@@ -14,6 +14,9 @@ const EScenarioCannotPublish: u64 = 6;
 const EScenarioCannotLock: u64 = 7;
 const EScenarioCannotSettle: u64 = 8;
 const EEnergyClaimTooEarly: u64 = 9;
+const EInvalidEnergyClaimAmount: u64 = 10;
+const EScenarioAlreadyExists: u64 = 11;
+const EZeroEnergyAllocation: u64 = 12;
 
 const StateDraft: u8 = 0;
 const StateOpen: u8 = 1;
@@ -154,6 +157,10 @@ public fun claim_badge(arena: &mut Arena, ctx: &sui::tx_context::TxContext) {
 public fun claim_energy(arena: &mut Arena, amount: u64, current_clock: &Clock, ctx: &sui::tx_context::TxContext) {
     let owner = sui::tx_context::sender(ctx);
     let now_ms = sui::clock::timestamp_ms(current_clock);
+    assert!(
+        amount == 0 || amount == DefaultEnergyClaimAmount,
+        EInvalidEnergyClaimAmount
+    );
     let claim_amount = if (amount == 0) DefaultEnergyClaimAmount else amount;
     let profiles = &mut arena.profiles;
     let profile = borrow_or_create_profile(profiles, owner);
@@ -191,6 +198,7 @@ public fun create_scenario(
     ctx: &sui::tx_context::TxContext,
 ) {
     assert_admin(arena, cap, ctx);
+    assert!(std::option::is_none(&scenario_index(&arena.scenarios, scenario_id)), EScenarioAlreadyExists);
 
     let now_ms = sui::clock::timestamp_ms(current_clock);
     let state = compute_initial_state(open_at_ms, lock_at_ms, now_ms);
@@ -295,6 +303,7 @@ public fun allocate_insight(
 ) {
     let owner = sui::tx_context::sender(ctx);
     let now_ms = sui::clock::timestamp_ms(current_clock);
+    assert!(energy_amount > 0, EZeroEnergyAllocation);
     let profiles = &mut arena.profiles;
     let scenarios = &mut arena.scenarios;
     let profile = borrow_or_create_profile(profiles, owner);
@@ -485,4 +494,268 @@ fun xp_award(amount: u64): u64 {
 
 fun max_u64(left: u64, right: u64): u64 {
     if (left > right) left else right
+}
+
+#[test_only]
+fun init_test_scenario(sender: address): sui::test_scenario::Scenario {
+    let mut scenario = sui::test_scenario::begin(sender);
+    scenario.create_system_objects();
+    init(scenario.ctx());
+    scenario
+}
+
+#[test_only]
+fun create_open_test_scenario(
+    arena: &mut Arena,
+    cap: &AdminCap,
+    clock: &Clock,
+    ctx: &sui::tx_context::TxContext,
+    scenario_id: u64,
+) {
+    create_scenario(
+        arena,
+        cap,
+        scenario_id,
+        b"one-172".to_string(),
+        b"Main event".to_string(),
+        b"Who wins?".to_string(),
+        b"Fighter A".to_string(),
+        b"TH".to_string(),
+        b"Fighter B".to_string(),
+        b"JP".to_string(),
+        5,
+        0,
+        120_000,
+        240_000,
+        clock,
+        ctx,
+    );
+}
+
+#[test]
+fun claim_badge_and_claim_energy_defaults() {
+    let sender = @0xA11CE;
+    let mut scenario = init_test_scenario(sender);
+
+    scenario.next_tx(sender);
+
+    let mut arena = scenario.take_shared<Arena>();
+    let clock = scenario.take_shared<Clock>();
+
+    claim_badge(&mut arena, scenario.ctx());
+    claim_energy(&mut arena, 0, &clock, scenario.ctx());
+
+    let profile = std::vector::borrow(&arena.profiles, 0);
+    assert!(profile.badge_claimed);
+    assert!(profile.energy == DefaultEnergyClaimAmount);
+    assert!(profile.badge_xp == 25);
+
+    sui::test_scenario::return_shared(clock);
+    sui::test_scenario::return_shared(arena);
+    scenario.end();
+}
+
+#[test, expected_failure(abort_code = kiai::arena::EInvalidEnergyClaimAmount)]
+fun claim_energy_rejects_custom_amount() {
+    let sender = @0xA11CE;
+    let mut scenario = init_test_scenario(sender);
+
+    scenario.next_tx(sender);
+
+    let mut arena = scenario.take_shared<Arena>();
+    let clock = scenario.take_shared<Clock>();
+
+    claim_badge(&mut arena, scenario.ctx());
+    claim_energy(&mut arena, 1, &clock, scenario.ctx());
+
+    sui::test_scenario::return_shared(clock);
+    sui::test_scenario::return_shared(arena);
+    scenario.end();
+}
+
+#[test, expected_failure(abort_code = kiai::arena::EEnergyClaimTooEarly)]
+fun claim_energy_enforces_cooldown() {
+    let sender = @0xA11CE;
+    let mut scenario = init_test_scenario(sender);
+
+    scenario.next_tx(sender);
+
+    let mut arena = scenario.take_shared<Arena>();
+    let clock = scenario.take_shared<Clock>();
+
+    claim_badge(&mut arena, scenario.ctx());
+    claim_energy(&mut arena, DefaultEnergyClaimAmount, &clock, scenario.ctx());
+    claim_energy(&mut arena, DefaultEnergyClaimAmount, &clock, scenario.ctx());
+
+    sui::test_scenario::return_shared(clock);
+    sui::test_scenario::return_shared(arena);
+    scenario.end();
+}
+
+#[test, expected_failure(abort_code = kiai::arena::EScenarioAlreadyExists)]
+fun create_scenario_rejects_duplicate_ids() {
+    let sender = @0xA11CE;
+    let mut scenario = init_test_scenario(sender);
+
+    scenario.next_tx(sender);
+
+    let mut arena = scenario.take_shared<Arena>();
+    let cap = scenario.take_from_sender<AdminCap>();
+    let clock = scenario.take_shared<Clock>();
+
+    create_open_test_scenario(&mut arena, &cap, &clock, scenario.ctx(), 7);
+    create_open_test_scenario(&mut arena, &cap, &clock, scenario.ctx(), 7);
+
+    scenario.return_to_sender(cap);
+    sui::test_scenario::return_shared(clock);
+    sui::test_scenario::return_shared(arena);
+    scenario.end();
+}
+
+#[test, expected_failure(abort_code = kiai::arena::EZeroEnergyAllocation)]
+fun allocate_insight_rejects_zero_energy() {
+    let sender = @0xA11CE;
+    let mut scenario = init_test_scenario(sender);
+
+    scenario.next_tx(sender);
+
+    let mut arena = scenario.take_shared<Arena>();
+    let cap = scenario.take_from_sender<AdminCap>();
+    let clock = scenario.take_shared<Clock>();
+
+    claim_badge(&mut arena, scenario.ctx());
+    claim_energy(&mut arena, DefaultEnergyClaimAmount, &clock, scenario.ctx());
+    create_open_test_scenario(&mut arena, &cap, &clock, scenario.ctx(), 9);
+    allocate_insight(&mut arena, 9, true, 0, &clock, scenario.ctx());
+
+    scenario.return_to_sender(cap);
+    sui::test_scenario::return_shared(clock);
+    sui::test_scenario::return_shared(arena);
+    scenario.end();
+}
+
+#[test]
+fun publish_scenario_transitions_draft_to_open() {
+    let sender = @0xA11CE;
+    let mut scenario = init_test_scenario(sender);
+
+    scenario.next_tx(sender);
+
+    let mut arena = scenario.take_shared<Arena>();
+    let cap = scenario.take_from_sender<AdminCap>();
+    let clock = scenario.take_shared<Clock>();
+
+    create_scenario(
+        &mut arena,
+        &cap,
+        21,
+        b"one-172".to_string(),
+        b"Main event".to_string(),
+        b"Who wins?".to_string(),
+        b"Fighter A".to_string(),
+        b"TH".to_string(),
+        b"Fighter B".to_string(),
+        b"JP".to_string(),
+        5,
+        60_000,
+        120_000,
+        240_000,
+        &clock,
+        scenario.ctx(),
+    );
+    publish_scenario(&mut arena, &cap, 21, &clock, scenario.ctx());
+
+    let scenario_ref = std::vector::borrow(&arena.scenarios, 0);
+    assert!(scenario_ref.state == StateOpen);
+    assert!(scenario_ref.open_at_ms == 0);
+    assert!(scenario_ref.lock_at_ms == 60_000);
+    assert!(scenario_ref.settle_by_ms == 150_000);
+
+    scenario.return_to_sender(cap);
+    sui::test_scenario::return_shared(clock);
+    sui::test_scenario::return_shared(arena);
+    scenario.end();
+}
+
+#[test]
+fun lock_scenario_transitions_to_locked() {
+    let sender = @0xA11CE;
+    let mut scenario = init_test_scenario(sender);
+
+    scenario.next_tx(sender);
+
+    let mut arena = scenario.take_shared<Arena>();
+    let cap = scenario.take_from_sender<AdminCap>();
+    let clock = scenario.take_shared<Clock>();
+
+    create_open_test_scenario(&mut arena, &cap, &clock, scenario.ctx(), 22);
+    lock_scenario(&mut arena, &cap, 22, &clock, scenario.ctx());
+
+    let scenario_ref = std::vector::borrow(&arena.scenarios, 0);
+    assert!(scenario_ref.state == StateLocked);
+    assert!(scenario_ref.lock_at_ms == 0);
+    assert!(scenario_ref.settle_by_ms == DefaultSettlementWindowMs);
+
+    scenario.return_to_sender(cap);
+    sui::test_scenario::return_shared(clock);
+    sui::test_scenario::return_shared(arena);
+    scenario.end();
+}
+
+#[test]
+fun archive_scenario_transitions_locked_to_archived() {
+    let sender = @0xA11CE;
+    let mut scenario = init_test_scenario(sender);
+
+    scenario.next_tx(sender);
+
+    let mut arena = scenario.take_shared<Arena>();
+    let cap = scenario.take_from_sender<AdminCap>();
+    let clock = scenario.take_shared<Clock>();
+
+    create_open_test_scenario(&mut arena, &cap, &clock, scenario.ctx(), 23);
+    lock_scenario(&mut arena, &cap, 23, &clock, scenario.ctx());
+    archive_scenario(&mut arena, &cap, 23, &clock, scenario.ctx());
+
+    let scenario_ref = std::vector::borrow(&arena.scenarios, 0);
+    assert!(scenario_ref.state == StateArchived);
+
+    scenario.return_to_sender(cap);
+    sui::test_scenario::return_shared(clock);
+    sui::test_scenario::return_shared(arena);
+    scenario.end();
+}
+
+#[test]
+fun settle_scenario_updates_profile_stats() {
+    let sender = @0xA11CE;
+    let mut scenario = init_test_scenario(sender);
+
+    scenario.next_tx(sender);
+
+    let mut arena = scenario.take_shared<Arena>();
+    let cap = scenario.take_from_sender<AdminCap>();
+    let clock = scenario.take_shared<Clock>();
+
+    claim_badge(&mut arena, scenario.ctx());
+    claim_energy(&mut arena, DefaultEnergyClaimAmount, &clock, scenario.ctx());
+    create_open_test_scenario(&mut arena, &cap, &clock, scenario.ctx(), 42);
+    allocate_insight(&mut arena, 42, true, 100, &clock, scenario.ctx());
+    settle_scenario(&mut arena, &cap, 42, true, &clock, scenario.ctx());
+
+    let profile = std::vector::borrow(&arena.profiles, 0);
+    let scenario_ref = std::vector::borrow(&arena.scenarios, 0);
+    assert!(profile.points == 1_450);
+    assert!(profile.energy == 500);
+    assert!(profile.badge_xp == 75);
+    assert!(profile.correct_calls == 1);
+    assert!(profile.total_calls == 1);
+    assert!(profile.streak == 1);
+    assert!(scenario_ref.state == StateSettled);
+    assert!(*std::option::borrow(&scenario_ref.winning_side));
+
+    scenario.return_to_sender(cap);
+    sui::test_scenario::return_shared(clock);
+    sui::test_scenario::return_shared(arena);
+    scenario.end();
 }

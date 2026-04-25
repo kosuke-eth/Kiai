@@ -56,22 +56,32 @@ export function useZkLogin() {
 
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? ""
 
+  const prepareZkLogin = useCallback(async () => {
+    const { epoch } = await client.getLatestSuiSystemState()
+    const ephemeralKeyPair = Ed25519Keypair.generate()
+    const maxEpoch = Number(epoch) + 10
+    const randomness = generateRandomness().toString()
+
+    const pending = {
+      ephemeralSecretKey: ephemeralKeyPair.getSecretKey(),
+      maxEpoch,
+      randomness,
+    } satisfies ZkLoginPendingState
+
+    writeJsonStorage(PENDING_STORAGE_KEY, pending)
+
+    return {
+      pending,
+      nonce: generateNonce(ephemeralKeyPair.getPublicKey(), maxEpoch, randomness),
+    }
+  }, [client])
+
   const initiateGoogleLogin = useCallback(async () => {
     if (!googleClientId) {
       throw new Error("NEXT_PUBLIC_GOOGLE_CLIENT_ID is not configured")
     }
 
-    const { epoch } = await client.getLatestSuiSystemState()
-    const ephemeralKeyPair = Ed25519Keypair.generate()
-    const maxEpoch = Number(epoch) + 10
-    const randomness = generateRandomness().toString()
-    const nonce = generateNonce(ephemeralKeyPair.getPublicKey(), maxEpoch, randomness)
-
-    writeJsonStorage(PENDING_STORAGE_KEY, {
-      ephemeralSecretKey: ephemeralKeyPair.getSecretKey(),
-      maxEpoch,
-      randomness,
-    } satisfies ZkLoginPendingState)
+    const { nonce } = await prepareZkLogin()
 
     const redirectUri = `${window.location.origin}/auth/callback`
     const params = new URLSearchParams({
@@ -84,7 +94,7 @@ export function useZkLogin() {
     })
 
     window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
-  }, [client, googleClientId])
+  }, [googleClientId, prepareZkLogin])
 
   const completeZkLogin = useCallback(async (jwt: string) => {
     const pending = readJsonStorage<ZkLoginPendingState>(PENDING_STORAGE_KEY)
@@ -148,10 +158,11 @@ export function useZkLogin() {
       googleClientId,
       session,
       isReady: Boolean(googleClientId),
+      prepareZkLogin,
       initiateGoogleLogin,
       completeZkLogin,
       clearSession,
     }),
-    [clearSession, completeZkLogin, googleClientId, initiateGoogleLogin, session],
+    [clearSession, completeZkLogin, googleClientId, initiateGoogleLogin, prepareZkLogin, session],
   )
 }

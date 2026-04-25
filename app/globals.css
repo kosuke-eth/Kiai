@@ -91,6 +91,56 @@
   }
 }
 
+@layer components {
+  .page-shell {
+    @apply min-h-screen bg-background;
+  }
+
+  .page-container {
+    @apply mx-auto max-w-7xl px-4;
+  }
+
+  .page-hero {
+    @apply border-b border-border bg-gradient-to-br from-primary/10 via-background to-destructive/10;
+  }
+
+  .page-hero-soft {
+    @apply border-b border-border bg-gradient-to-br from-primary/10 via-background to-background;
+  }
+
+  .page-panel {
+    @apply rounded-2xl border border-border bg-card shadow-sm;
+  }
+
+  .page-panel-muted {
+    @apply rounded-2xl border border-border bg-muted/40 shadow-sm;
+  }
+
+  .section-kicker {
+    @apply text-xs font-semibold uppercase tracking-[0.28em] text-primary/80;
+  }
+
+  .segmented-control {
+    @apply inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 p-1;
+  }
+
+  .segmented-pill {
+    @apply rounded-full px-4 py-2 text-sm font-semibold transition-colors;
+  }
+
+  .segmented-pill-active {
+    @apply bg-card text-foreground shadow-sm;
+  }
+
+  .segmented-pill-idle {
+    @apply text-muted-foreground hover:text-foreground;
+  }
+
+  .status-chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold;
+  }
+}
+
 .btn-primary {
   @apply bg-[#1a1a1a] text-white font-semibold px-6 py-3 hover:bg-[#333] transition-colors;
 }

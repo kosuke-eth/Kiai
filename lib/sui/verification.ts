@@ -7,6 +7,9 @@ import { suiConfig } from "@/lib/sui/config"
 import { getSuiClient } from "@/lib/sui/server"
 import type { ScenarioSide } from "@/lib/kiai/types"
 
+const TRANSACTION_LOOKUP_RETRIES = 5
+const TRANSACTION_LOOKUP_RETRY_DELAY_MS = 750
+
 type VerifiedTransactionInput =
   | { digest: string; sender?: string; kind: "claim_badge" }
   | { digest: string; sender?: string; kind: "claim_energy" }
@@ -79,14 +82,37 @@ function assertPureValue(value: unknown, expected: unknown, message: string) {
   }
 }
 
+function isTransactionLookupRace(error: unknown) {
+  return error instanceof Error && error.message.includes("Could not find the referenced transaction")
+}
+
+async function getTransactionBlockWithRetry(digest: string) {
+  let lastError: unknown
+
+  for (let attempt = 0; attempt < TRANSACTION_LOOKUP_RETRIES; attempt += 1) {
+    try {
+      return await getSuiClient().getTransactionBlock({
+        digest,
+        options: {
+          showEffects: true,
+          showInput: true,
+        },
+      })
+    } catch (error) {
+      lastError = error
+      if (!isTransactionLookupRace(error) || attempt === TRANSACTION_LOOKUP_RETRIES - 1) {
+        throw error
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, TRANSACTION_LOOKUP_RETRY_DELAY_MS))
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("Unable to load transaction block")
+}
+
 export async function verifyConfirmedTransaction(input: VerifiedTransactionInput) {
-  const transaction = await getSuiClient().getTransactionBlock({
-    digest: input.digest,
-    options: {
-      showEffects: true,
-      showInput: true,
-    },
-  })
+  const transaction = await getTransactionBlockWithRetry(input.digest)
 
   if (transaction.effects?.status.status !== "success") {
     throw new Error(transaction.effects?.status.error ?? "Transaction failed onchain")

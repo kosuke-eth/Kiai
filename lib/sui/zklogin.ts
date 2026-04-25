@@ -26,7 +26,7 @@ function isStringMatrix(value: unknown): value is string[][] {
   return Array.isArray(value) && value.every(isStringArray)
 }
 
-export function normalizeZkLoginSignatureInputs(value: unknown): ZkLoginSignatureInputs {
+export function normalizeZkLoginSignatureInputs(value: unknown, addressSeed: string): ZkLoginSignatureInputs {
   const payload = value as JsonRecord
   const proofPoints = payload.proofPoints as JsonRecord
   const claim = payload.issBase64Details as JsonRecord
@@ -40,7 +40,8 @@ export function normalizeZkLoginSignatureInputs(value: unknown): ZkLoginSignatur
     typeof claim.value !== "string" ||
     typeof claim.indexMod4 !== "number" ||
     typeof payload.headerBase64 !== "string" ||
-    typeof payload.addressSeed !== "string"
+    typeof addressSeed !== "string" ||
+    addressSeed.length === 0
   ) {
     throw new Error("zkLogin prover response is missing required signature inputs")
   }
@@ -56,6 +57,6 @@ export function normalizeZkLoginSignatureInputs(value: unknown): ZkLoginSignatur
       indexMod4: claim.indexMod4,
     },
     headerBase64: payload.headerBase64,
-    addressSeed: payload.addressSeed,
+    addressSeed,
   }
 }

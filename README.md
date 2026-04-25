@@ -1,247 +1,117 @@
-# KIAI
+# 🥋 KIAI: The Spirit Engine
 
-KIAI is a testnet-first fan engagement product for live ONE Championship events, built on Sui. It lets fans claim a badge, receive event energy, allocate insight to live scenarios, and earn standing as moments unfold.
+### Real-Time Sentiment Market for ONE Championship on Sui
 
-This repository is a hackathon-ready MVP: a Next.js 16 app with a local backend-for-frontend layer, a deployed Move package on Sui Testnet, real onchain write flows, and a temporary local read-model mirror so the full experience can run without an indexer.
+-----
 
-The product direction is compliance-safe fan participation, not gambling. In product and code language, prefer terms such as `allocate_insight`, `stake_energy`, and `settle_scenario`.
+## 📖 Overview
 
-## Why This Project Exists
+**KIAI** is the world's first "100% legal" and "zero-friction" combat sports real-time sentiment market, merging the power of the Sui blockchain with real-time live broadcasting..
 
-KIAI is designed around a simple idea: turn live fight moments into real-time fan participation without exposing users to financial risk or crypto complexity.
+Due to strict gambling laws in Japan, traditional prediction markets are difficult to implement for domestic events like ONE Championship. KIAI elegantly leaps over this legal wall by utilizing Sui's **Sponsored Transactions** and **zkLogin**. By building a model where users face "zero financial burden" (including gas fees), KIAI synchronizes fan passion on-chain while maintaining full legal compliance.
 
-The current MVP focuses on three constraints:
-- zero-friction onboarding for mainstream fans
-- zero-gas interaction paths through sponsored transactions
-- testnet-first, inspectable chain behavior for hackathon validation
+### Core Values
 
-## Quickstart
+  * **NO Betting, YES Sync:** We don't bet money; we synchronize passion.
+  * **Zero Friction:** No wallets, no gas fees. Join in 1 second with just a Google login.
+  * **Combat IQ:** Prove your "fighting insight" and earn honor through Soulbound Tokens (SBT).
+
+-----
+### 💡 Practical Impact
+
+* For ONE Championship: Unlocks a legally compliant, highly engaging interactive experience in Japan. By keeping fans glued to 60-second micro-scenarios, it drastically increases screen retention.
+
+* For Athletes: Creates a verifiable on-chain bridge to true fans. Athletes can identify who backed them during critical moments and reward high-tier "Black Belt" SBT holders with exclusive perks (meet & greets, merchandise).
+
+## ✨ Key Features
+
+### 1\. ⚡️ Zero-Friction Onboarding (zkLogin)
+
+Integrated with Sui's **zkLogin**, KIAI requires no seed phrases or existing wallets. General fight fans can enter the "Dojo" instantly using only their everyday Google accounts.
+
+### 2\. ⛽️ Fully Sponsored Transactions
+
+To comply with Japanese regulations, the protocol covers 100% of the gas fees for all transactions. By eliminating "financial output" from the user, the system completely clears the legal constraints of gambling and sweepstakes laws.
+
+### 3\. 🥋 Earn Points & Claim Gasless NFTs
+
+Upon successful predictions, users are rewarded with "Combat IQ" points. Based on accumulated points, users can claim and upgrade their "KIAI Badge" (Dynamic SBT) completely **gas-free** via Sponsored Transactions. The badge visually evolves on-chain (e.g., from White Belt to Black Belt), serving as verifiable proof of their fighting insight to unlock future exclusive ONE Championship perks.
+
+-----
+
+## 🏗 Architecture
+
+1.  **Match Data Ingest:** Captures metadata from the live fight.
+2.  Real-Time Scenario Minting: Currently, admin operators monitor the live match and instantly mint Scenario objects on Sui, with full AI automation planned for the next phase.3.  **User Interaction:** Users sign via `zkLogin` and allocate `KIAI Energy` (voting tokens).
+4.  **Parallel Settlement:** Sui’s parallel execution processes tens of thousands of simultaneous inputs with ultra-low latency.
+5.  **Reward Distribution:** Updates `Dynamic NFT` status and points after scenario settlement.
+
+-----
+
+## 🛠 Tech Stack
+
+  * **Blockchain:** Sui Network (Move)
+  * **Smart Contracts:** Sui Move
+  * **Frontend:** React, TypeScript, Tailwind CSS, Vite
+  * **Identity:** Sui zkLogin (Google Auth)
+  * **Infrastructure:** Sponsored Transactions (Gas Station integration)
+
+-----
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js 20+
-- npm
+  * Node.js (v18 or higher)
+  * Sui CLI (latest version for Testnet)
 
-### Install and run
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/GustoDevelopment/KIAI.git
+cd KIAI
+
+# Install dependencies
 npm install
+```
+
+### Deploy Smart Contracts (Sui Move)
+
+```bash
+cd move/kiai
+sui client publish --gas-budget 100000000
+```
+
+### Start Frontend
+
+```bash
 npm run dev
 ```
 
-Open:
-- `/` for the landing page
-- `/predictions` for the live scenario flow
-- `/leaderboard` for rankings
-- `/marketplace` for redemptions
-- `/admin` for operator controls
+-----
 
-## Current State
+## ⚖️ Legal Compliance
 
-This repository is no longer just a UI prototype.
+KIAI is designed with a "Compliance First" approach for the Japanese market.
 
-Implemented in the current codebase:
-- Next.js 16 App Router frontend with routes for `/`, `/events`, `/predictions`, `/athletes`, `/leaderboard`, `/marketplace`, and `/admin`
-- Route handlers under `app/api/*` for profile, scenarios, claims, leaderboard, marketplace, sponsorship, and zkLogin bootstrap
-- Typed KIAI domain layer under `lib/kiai/*`
-- Sui transaction builders and read-model parsing under `lib/sui/*`
-- A real Move package under `move/`
-- Wallet-signed onchain flows for badge claim, energy claim, and insight allocation
-- Server-executed admin flows for scenario creation, lifecycle changes, and settlement
-- Wallet-signed operator auth for `/admin` using an allowlisted Sui wallet challenge
-- Sponsored transaction support through a typed, allowlisted `POST /api/sponsor` contract
-- Transaction-specific onchain verification before local mirror updates for claim and allocation sync
-- Google zkLogin bootstrap flow, session persistence, signature assembly, and transaction execution path in code
-- Onchain-backed reads for scenarios, profile, and leaderboard when Sui env is configured
+  * **Avoidance of Gambling:** Participation is entirely free. Furthermore, Sponsored Transactions eliminate the need for users to pay technical fees (gas), establishing an "Open Sweepstakes" model with zero financial risk.
+  * **Legal Nature of Digital Assets:** Rewards are non-transferable SBTs (Soulbound Tokens) and points, maintaining their status as "honorary memberships" rather than assets with transferable property value.
 
-Still intentionally incomplete:
-- No production database or indexer
-- `.data/kiai-store.json` is still the temporary UI read-model mirror and fallback store
-- Marketplace state is still local-first and demo-scoped to the default profile
-- zkLogin should still be treated as prototype-grade until you validate it against your own deployed env
-- Admin auth is hackathon-grade session auth, not a full production operator IAM model
+-----
 
-For the implementation audit and validation record, see [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
+## 📢 Vision
 
-## Validated On Testnet
+**"Go BOLD. Synchronize the Arena."**
 
-Per [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md), the following flows have already been executed against Sui Testnet:
-- Move package published
-- Admin scenario creation
-- Badge claim
-- Energy claim
-- Insight allocation
-- Scenario settlement
-- API read-model verification after settlement
+We use technology to gracefully overcome the barriers that bind the Japanese entertainment and Web3 industries. We are creating a future where the "KIAI" (spirit) of fans is connected on-chain, both at the Ariake Arena and in front of screens worldwide.
 
-That means the repo currently represents a hybrid MVP:
-- onchain writes are real
-- some reads are chain-backed
-- the UI still uses a local mirror as the temporary read model
+-----
 
-## Deployed Testnet Resources
+## 🗺 Roadmap (Post-Hackathon)
 
-Current deployed IDs from [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md):
+While our current MVP focuses on perfectly executing the core Sui infrastructure (zkLogin, Sponsored Tx) and establishing the legal framework, our next steps include:
+* **AI-Driven Micro-Books:** Integrating LLM agents (e.g., OpenAI) to automatically analyze live match data and generate prediction scenarios with zero human intervention.
+* **Official ONE Super App Integration:** Seamlessly embedding the KIAI engine into the existing ONE Championship mobile ecosystem.
 
-- Package ID: `0x6ee68a1d8f06564d0625f0c4460f6801207529de93a77a91d4c4efb9b809f976`
-- Shared Arena object: `0x9936a83051ac1610335a6ed6277a791e07fb27150027da4f65c6c06eca3e9713`
-- AdminCap object: `0x21906cf3511e7e81c6a762ec07a046e64e9f2545ed8497829c50d7a0cdf74f15`
-- Publish digest: `28jbxMgqYFswLeyZLMydafg2wwvoKA1axhtLVuq2vWRh`
-
-If you want local development to use the deployed testnet package, wire these into `.env.local`.
-
-## Architecture Snapshot
-
-Primary app routes:
-- `/`
-- `/events`
-- `/predictions`
-- `/athletes`
-- `/leaderboard`
-- `/marketplace`
-- `/admin`
-- `/auth/callback`
-
-Important directories:
-- `app/`: App Router pages and route handlers
-- `components/nbg/`: route-level product UI
-- `hooks/`: wallet, address, profile, and zkLogin hooks
-- `lib/kiai/`: typed domain contracts and local store
-- `lib/sui/`: Sui config, transaction builders, verifier, zkLogin helpers, and read-model parser
-- `move/`: Move package source
-- `.data/kiai-store.json`: temporary local mirror
-
-Key architectural behavior:
-- frontend routes stay thin and defer screen logic to `components/nbg/*`
-- `app/api/*` acts as the backend-for-frontend layer
-- onchain writes and local mirror sync are deliberately separated
-- onchain state is the intended source of truth, but the local mirror still supports demo continuity until an indexer exists
-
-## Tech Stack
-
-- Next.js 16
-- React 19
-- TypeScript
-- Tailwind CSS v4
-- TanStack React Query
-- `@mysten/sui`
-- legacy `@mysten/dapp-kit`
-- Zod
-
-Note: the repo still uses legacy `@mysten/dapp-kit`. For net-new wallet integration work, check whether migrating to the current `@mysten/dapp-kit-react` stack is the right move before extending the legacy path.
-
-## Development
-
-### Build
-
-```bash
-npm run build
-```
-
-### Lint
-
-```bash
-npm run lint
-```
-
-### Publish the Move package to Testnet
-
-```bash
-npm run sui:publish:testnet
-```
-
-## Environment Configuration
-
-Copy `.env.example` to `.env.local`.
-
-Current env surface:
-
-```bash
-NEXT_PUBLIC_SUI_NETWORK=testnet
-NEXT_PUBLIC_SUI_PACKAGE_ID=
-NEXT_PUBLIC_SUI_ARENA_OBJECT_ID=
-NEXT_PUBLIC_SPONSORED_TX_ENDPOINT=/api/sponsor
-
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-
-SUI_ADMIN_CAP_ID=
-SUI_ADMIN_PRIVATE_KEY=
-KIAI_ADMIN_ALLOWLIST=
-KIAI_ADMIN_SESSION_SECRET=
-
-ZKLOGIN_SALT_SERVICE=https://salt.api.mystenlabs.com/get_salt
-SUI_ZKLOGIN_PROVER_URL=
-SUI_ZKLOGIN_SALT_SEED=
-```
-
-What these env vars enable:
-
-- `NEXT_PUBLIC_SUI_NETWORK`: active Sui network, defaulting to `testnet`
-- `NEXT_PUBLIC_SUI_PACKAGE_ID`: deployed Move package used for user/admin write flows
-- `NEXT_PUBLIC_SUI_ARENA_OBJECT_ID`: shared `Arena` object used by reads and writes
-- `NEXT_PUBLIC_SPONSORED_TX_ENDPOINT`: enables the sponsored transaction path, usually `/api/sponsor`
-- `SUI_ADMIN_CAP_ID`: admin capability object for server-side scenario operations
-- `SUI_ADMIN_PRIVATE_KEY`: server signer for admin writes and sponsorship
-- `KIAI_ADMIN_ALLOWLIST`: comma-separated Sui wallet addresses allowed to unlock `/admin`
-- `KIAI_ADMIN_SESSION_SECRET`: HMAC secret used to sign the admin session cookie after wallet verification
-- Google and zkLogin vars: enable the OAuth and proof-generation path used by `/api/auth/zklogin` and `/auth/callback`
-
-When package and object IDs are configured:
-- claim and allocation actions can execute onchain
-- scenario reads can prefer the shared onchain `Arena` object
-- admin scenario operations can execute through the server signer
-- local mirror updates can verify submitted tx digests before mutation
-
-## Demo Highlights
-
-What the app does today:
-- fans can claim a badge, load energy, and allocate insight to live scenarios
-- operators can create, publish, lock, settle, and archive scenarios from `/admin`
-- operators must first sign a Sui wallet challenge before using `/admin`
-- leaderboard and profile state can reflect onchain outcomes when configured
-- the app supports injected wallets and has a zkLogin flow in code
-- sponsorship is supported for zero-gas user actions when the server signer is configured
-
-What the app does not yet do:
-- use a real indexer or production database
-- source marketplace state from chain
-- provide production-ready operator authentication, authorization, and audit controls
-- ship a fully productionized zkLogin deployment story
-
-## Product Language
-
-Prefer:
-- `allocate_insight`
-- `sync_kiai`
-- `stake_energy`
-- `claim_kiai`
-- `settle_scenario`
-
-Avoid:
-- `bet`
-- `wager`
-- `gamble`
-- `odds`
-- `payout`
-
-## Repository Docs
-
-- [docs/project-summary.md](docs/project-summary.md): product concept and positioning
-- [docs/engineering-task-sheet.md](docs/engineering-task-sheet.md): intended implementation direction
-- [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md): what was implemented and validated
-- [docs/audit.md](docs/audit.md): architectural audit and gaps
-- [AGENTS.md](AGENTS.md): repo-specific guidance for coding agents
-
-If docs and code disagree, trust the code for current behavior and treat the docs as target-state intent unless the task explicitly says otherwise.
-
-## Sui References
-
-Use official Mysten and Sui docs before changing chain behavior:
-
-- Sui docs: https://docs.sui.io/
-- zkLogin docs: https://docs.sui.io/sui-stack/zklogin-integration/zklogin
-- TypeScript SDK docs: https://sdk.mystenlabs.com/sui
-- dApp Kit docs: https://sdk.mystenlabs.com/dapp-kit
-- dApp Kit React and migration guidance: https://sdk.mystenlabs.com/sui/migrations/sui-2.0/dapp-kit
-- Next.js dApp Kit guide: https://sdk.mystenlabs.com/dapp-kit/getting-started/next-js
+© 2026 KIAI Project. All rights reserved.

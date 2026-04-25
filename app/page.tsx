@@ -1,8 +1,16 @@
-"use client";
+"use client"
 
-import { Header } from "@/components/nbg/header";
-import { LandingPage } from "@/components/nbg/landing-page";
-import { Toaster } from "sonner";
+import dynamic from "next/dynamic"
+
+const Header = dynamic(() => import("@/components/nbg/header").then((mod) => mod.Header), {
+  ssr: false,
+})
+const LandingPage = dynamic(() => import("@/components/nbg/landing-page").then((mod) => mod.LandingPage), {
+  ssr: false,
+})
+const Toaster = dynamic(() => import("sonner").then((mod) => mod.Toaster), {
+  ssr: false,
+})
 
 export default function Home() {
   return (
@@ -20,5 +28,5 @@ export default function Home() {
       <Header />
       <LandingPage />
     </main>
-  );
+  )
 }

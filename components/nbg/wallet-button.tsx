@@ -68,7 +68,7 @@ export function WalletButton() {
               >
                 <div className="p-4 border-b border-border">
                   <p className="text-xs text-muted-foreground mb-1">
-                    {isZkLoginSession ? "Connected with Google zkLogin" : "Connected Wallet"}
+                    {isZkLoginSession ? "Connected with zkLogin" : "Connected Wallet"}
                   </p>
                   <div className="flex items-center justify-between">
                     <p className="font-mono text-sm">{formatAddress(connectedAddress)}</p>
@@ -125,7 +125,7 @@ export function WalletButton() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-card w-full max-w-md border border-border shadow-xl"
+              className="bg-card text-card-foreground w-full max-w-md border border-border shadow-xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between p-4 border-b border-border">
@@ -150,16 +150,39 @@ export function WalletButton() {
                         setShowModal(false)
                         await initiateGoogleLogin()
                       }}
-                      className="w-full flex items-center gap-3 p-3 border border-primary/40 bg-primary/10 hover:border-primary hover:bg-primary/15 transition-colors"
+                      className="w-full flex items-center gap-3 p-3 border border-primary/40 bg-primary/10 text-left text-foreground hover:border-primary hover:bg-primary/15 transition-colors"
                     >
                       <div className="w-8 h-8 rounded bg-white text-black flex items-center justify-center font-black">
                         G
                       </div>
                       <div className="text-left">
-                        <p className="font-semibold">Continue with Google</p>
+                        <p className="font-semibold text-foreground">Continue with Google</p>
                         <p className="text-xs text-muted-foreground">zkLogin on Sui</p>
                       </div>
                     </button>
+                  ) : null}
+
+                  <button
+                    onClick={() => {
+                      setShowModal(false)
+                      window.location.href = "/auth/zklogin"
+                    }}
+                    className="w-full flex items-center gap-3 p-3 border border-border text-left text-foreground hover:border-primary hover:bg-primary/5 transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded bg-muted flex items-center justify-center font-black text-sm">
+                      ID
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-foreground">Use an existing OpenID token</p>
+                      <p className="text-xs text-muted-foreground">Manual zkLogin completion</p>
+                    </div>
+                  </button>
+
+                  {!zkLoginReady ? (
+                    <p className="px-1 text-xs text-muted-foreground">
+                      Automatic Google redirect is disabled until <code>NEXT_PUBLIC_GOOGLE_CLIENT_ID</code> is set.
+                      Manual zkLogin completion remains available.
+                    </p>
                   ) : null}
 
                   {wallets.length > 0 ? (
@@ -170,7 +193,7 @@ export function WalletButton() {
                           connect({ wallet })
                           setShowModal(false)
                         }}
-                        className="w-full flex items-center gap-3 p-3 border border-border hover:border-primary hover:bg-primary/5 transition-colors"
+                        className="w-full flex items-center gap-3 p-3 border border-border text-left text-foreground hover:border-primary hover:bg-primary/5 transition-colors"
                       >
                         {wallet.icon && (
                           <img 
@@ -180,7 +203,7 @@ export function WalletButton() {
                           />
                         )}
                         <div className="text-left">
-                          <p className="font-semibold">{wallet.name}</p>
+                          <p className="font-semibold text-foreground">{wallet.name}</p>
                           <p className="text-xs text-muted-foreground">Sui Wallet</p>
                         </div>
                       </button>
